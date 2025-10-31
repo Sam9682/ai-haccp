@@ -10,6 +10,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api:
     build: ./backend
@@ -18,10 +23,14 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ai_haccp
       JWT_SECRET: your-secret-key
+      PYTHONPATH: /app
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./backend:/app
+      - ./uploads:/app/uploads
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
@@ -29,9 +38,28 @@ services:
       - "3000:3000"
     environment:
       REACT_APP_API_URL: http://localhost:8000
+    depends_on:
+      - api
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    restart: unless-stopped
+
+  mcp-server:
+    build: ./backend
+    command: python mcp_server.py
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ai_haccp
+      PYTHONPATH: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    profiles:
+      - mcp
 
 volumes:
   postgres_data:
+  uploads:
