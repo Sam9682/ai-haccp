@@ -68,7 +68,7 @@ def init_database():
             INSERT INTO organizations (name, type) VALUES ('Demo Restaurant', 'restaurant');
             
             INSERT INTO users (email, password_hash, name, role, organization_id) VALUES 
-            ('admin@restaurant.com', '{hashed_password}', 'Demo Admin', 'admin', 1);
+            ('admin@lebouzou.com', '{hashed_password}', 'Demo Admin', 'admin', 1);
             
             INSERT INTO hazard_categories (name, description, severity_level) VALUES
             ('Biological', 'Bacteria, viruses, parasites, fungi', 3),

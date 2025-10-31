@@ -9,7 +9,7 @@ AI-HACCP is a comprehensive Food Safety Management Platform designed specificall
 ### 1. First Login
 - **URL**: http://localhost:3000
 - **Demo Credentials**:
-  - Email: `admin@restaurant.com`
+  - Email: `admin@lebouzou.com`
   - Password: `password`
 
 ### 2. Dashboard Overview
@@ -216,7 +216,7 @@ For power users and automation:
 pip install -r cli_requirements.txt
 
 # Login
-./cli_client.py login --email admin@restaurant.com
+./cli_client.py login --email admin@lebouzou.com
 
 # Log temperature
 ./cli_client.py log-temp --location "Freezer" --temperature -18

@@ -69,7 +69,7 @@ docker-compose up -d
 - API Documentation: http://localhost:8000/docs
 
 3. **Default Login**:
-- Email: admin@restaurant.com
+- Email: admin@lebouzou.com
 - Password: password
 
 ### Database Setup

@@ -45,7 +45,7 @@ The AI-HACCP platform provides multiple ways to interact with the system, making
 ```bash
 curl -X POST "http://localhost:8000/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@restaurant.com", "password": "password"}'
+  -d '{"email": "admin@lebouzou.com", "password": "password"}'
 ```
 
 ### Core Endpoints
@@ -122,7 +122,7 @@ chmod +x cli_client.py
 
 ```bash
 # Login
-./cli_client.py login --email admin@restaurant.com
+./cli_client.py login --email admin@lebouzou.com
 
 # Log temperature
 ./cli_client.py log-temp --location "Walk-in Cooler" --temperature 2.5
@@ -237,7 +237,7 @@ All interfaces are mobile-responsive:
 from api_examples import HACCPAPIClient
 
 client = HACCPAPIClient()
-client.login("admin@restaurant.com", "password")
+client.login("admin@lebouzou.com", "password")
 client.log_temperature("Freezer", -18.0)
 ```
 
@@ -262,7 +262,7 @@ const response = await fetch('/api/temperature-logs', {
 curl -X POST "http://localhost:8000/temperature-logs" \
   -H "Authorization: Bearer $(curl -s -X POST "http://localhost:8000/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@restaurant.com","password":"password"}' | jq -r '.access_token')" \
+  -d '{"email":"admin@lebouzou.com","password":"password"}' | jq -r '.access_token')" \
   -H "Content-Type: application/json" \
   -d '{"location": "Walk-in Cooler", "temperature": 2.5}'
 ```

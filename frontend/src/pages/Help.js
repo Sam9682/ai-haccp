@@ -112,7 +112,7 @@ export default function Help() {
               </Typography>
               <Card sx={{ mb: 2, bgcolor: '#f5f5f5' }}>
                 <CardContent>
-                  <Typography>Email: admin@restaurant.com</Typography>
+                  <Typography>Email: admin@lebouzou.com</Typography>
                   <Typography>Password: password</Typography>
                 </CardContent>
               </Card>

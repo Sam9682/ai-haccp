@@ -94,7 +94,7 @@ def main():
     
     # Login
     print("🔐 Logging in...")
-    if client.login("admin@restaurant.com", "password"):
+    if client.login("admin@lebouzou.com", "password"):
         print("✅ Login successful")
     else:
         print("❌ Login failed")

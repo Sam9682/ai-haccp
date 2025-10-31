@@ -174,7 +174,7 @@ verify_deployment() {
     
     # Test API health endpoint
     sleep 10
-    if curl -f -s "http://localhost:8000/health" > /dev/null; then
+    if curl -f -s "http://localhost:9001/health" > /dev/null; then
         log_info "API health check passed ✅"
     else
         log_warn "API health check failed, but services are running"
@@ -193,8 +193,8 @@ setup_firewall() {
         sudo ufw default deny incoming
         sudo ufw default allow outgoing
         sudo ufw allow ssh
-        sudo ufw allow 80/tcp
-        sudo ufw allow 443/tcp
+        sudo ufw allow 8010/tcp
+        sudo ufw allow 44310/tcp
         sudo ufw --force enable
         
         log_info "Firewall configured ✅"
@@ -253,7 +253,7 @@ main() {
     echo "=================================="
     echo "🌐 Web Interface: https://$DOMAIN"
     echo "📚 API Documentation: https://$DOMAIN/docs"
-    echo "🔑 Demo Login: admin@restaurant.com / password"
+    echo "🔑 Demo Login: admin@lebouzou.com / password"
     echo ""
     echo "📋 Next Steps:"
     echo "1. Test the application at https://$DOMAIN"
@@ -267,6 +267,27 @@ main() {
     echo "- Backup database: ./backup.sh"
     echo "- Stop services: make stop"
     echo "- Update application: git pull && make prod"
+}
+
+# Stop services
+stop_services() {
+    log_info "Stopping AI-HACCP services..."
+    docker-compose -f docker-compose.prod.yml down
+    log_info "Services stopped successfully ✅"
+}
+
+# Check service status
+check_status() {
+    log_info "Checking AI-HACCP service status..."
+    echo ""
+    docker-compose -f docker-compose.prod.yml ps
+    echo ""
+    
+    if docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+        log_info "AI-HACCP is running ✅"
+    else
+        log_warn "AI-HACCP is not running ⚠️"
+    fi
 }
 
 # Handle script arguments
@@ -284,12 +305,20 @@ case "${1:-deploy}" in
     "verify")
         verify_deployment
         ;;
+    "stop")
+        stop_services
+        ;;
+    "status")
+        check_status
+        ;;
     *)
-        echo "Usage: $0 [deploy|ssl|backup|verify]"
+        echo "Usage: $0 [deploy|ssl|backup|verify|stop|status]"
         echo "  deploy  - Full production deployment (default)"
         echo "  ssl     - Setup SSL certificates only"
         echo "  backup  - Create database backup"
         echo "  verify  - Verify deployment status"
+        echo "  stop    - Stop all services"
+        echo "  status  - Check service status"
         exit 1
         ;;
 esac

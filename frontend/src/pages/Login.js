@@ -92,7 +92,7 @@ export default function Login() {
           </Box>
           
           <Typography variant="body2" color="textSecondary" align="center" sx={{ mt: 2 }}>
-            Demo: admin@restaurant.com / password
+            Demo: admin@lebouzou.com / password
           </Typography>
         </Paper>
       </Box>
