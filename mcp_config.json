@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ai-haccp": {
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "env": {
+        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/ai_haccp"
+      }
+    }
+  }
+}
