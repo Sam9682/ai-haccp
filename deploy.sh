@@ -142,7 +142,7 @@ deploy_services() {
     
     # Build images
     log_info "Building Docker images..."
-    docker-compose -f docker-compose.prod.yml build --no-cache
+    docker-compose -f docker-compose.prod.yml build --no-cache --build-arg PIP_UPGRADE=1
     
     # Start services
     log_info "Starting production services..."
