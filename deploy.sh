@@ -1,0 +1,295 @@
+#!/bin/bash
+# AI-HACCP Production Deployment Script
+
+set -e
+
+echo "🚀 AI-HACCP Production Deployment"
+echo "=================================="
+
+# Configuration
+DOMAIN=${DOMAIN:-"ai-haccp.swautomorph.com"}
+EMAIL=${EMAIL:-"admin@swautomorph.com"}
+ENV_FILE=".env.prod"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Helper functions
+log_info() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Check if running as root
+if [[ $EUID -eq 0 ]]; then
+   log_error "This script should not be run as root"
+   exit 1
+fi
+
+# Check prerequisites
+check_prerequisites() {
+    log_info "Checking prerequisites..."
+    
+    if ! command -v docker &> /dev/null; then
+        log_error "Docker is not installed. Please install Docker first."
+        exit 1
+    fi
+    
+    if ! command -v docker-compose &> /dev/null; then
+        log_error "Docker Compose is not installed. Please install Docker Compose first."
+        exit 1
+    fi
+    
+    log_info "Prerequisites check passed ✅"
+}
+
+# Generate secure passwords
+generate_secrets() {
+    log_info "Generating secure secrets..."
+    
+    if [[ ! -f "$ENV_FILE" ]]; then
+        log_info "Creating production environment file..."
+        
+        # Generate secure passwords
+        DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
+        JWT_SECRET=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
+        
+        cat > "$ENV_FILE" << EOF
+# Database Configuration
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=$DB_PASSWORD
+POSTGRES_DB=ai_haccp
+
+# Security
+JWT_SECRET=$JWT_SECRET
+
+# Domain Configuration
+DOMAIN=$DOMAIN
+API_URL=https://$DOMAIN
+SSL_EMAIL=$EMAIL
+
+# Frontend
+REACT_APP_API_URL=https://$DOMAIN
+EOF
+        
+        chmod 600 "$ENV_FILE"
+        log_info "Environment file created with secure passwords ✅"
+    else
+        log_warn "Environment file already exists, skipping generation"
+    fi
+}
+
+# Setup SSL certificates
+setup_ssl() {
+    log_info "Setting up SSL certificates..."
+    
+    if [[ ! -d "ssl" ]]; then
+        mkdir -p ssl
+        
+        # Check if certbot is installed
+        if command -v certbot &> /dev/null; then
+            log_info "Obtaining SSL certificate for $DOMAIN..."
+            
+            # Stop nginx if running
+            sudo systemctl stop nginx 2>/dev/null || true
+            
+            # Get certificate
+            sudo certbot certonly --standalone \
+                -d "$DOMAIN" \
+                --email "$EMAIL" \
+                --agree-tos \
+                --non-interactive \
+                --quiet
+            
+            # Copy certificates
+            sudo cp "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ssl/
+            sudo cp "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ssl/
+            sudo chown -R $USER:$USER ssl/
+            
+            log_info "SSL certificates obtained ✅"
+        else
+            log_warn "Certbot not found. Creating self-signed certificates for testing..."
+            
+            # Create self-signed certificate for testing
+            openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+                -keyout ssl/privkey.pem \
+                -out ssl/fullchain.pem \
+                -subj "/C=US/ST=State/L=City/O=Organization/CN=$DOMAIN"
+            
+            log_warn "Self-signed certificate created. Replace with real certificate for production!"
+        fi
+    else
+        log_info "SSL directory already exists, skipping certificate generation"
+    fi
+}
+
+# Build and deploy
+deploy_services() {
+    log_info "Building and deploying services..."
+    
+    # Stop existing services
+    docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
+    
+    # Build images
+    log_info "Building Docker images..."
+    docker-compose -f docker-compose.prod.yml build --no-cache
+    
+    # Start services
+    log_info "Starting production services..."
+    docker-compose -f docker-compose.prod.yml --env-file "$ENV_FILE" up -d
+    
+    # Wait for services to be ready
+    log_info "Waiting for services to start..."
+    sleep 30
+    
+    # Check service health
+    if docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+        log_info "Services deployed successfully ✅"
+    else
+        log_error "Some services failed to start"
+        docker-compose -f docker-compose.prod.yml logs
+        exit 1
+    fi
+}
+
+# Verify deployment
+verify_deployment() {
+    log_info "Verifying deployment..."
+    
+    # Check if services are running
+    if ! docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+        log_error "Services are not running properly"
+        return 1
+    fi
+    
+    # Test API health endpoint
+    sleep 10
+    if curl -f -s "http://localhost:8000/health" > /dev/null; then
+        log_info "API health check passed ✅"
+    else
+        log_warn "API health check failed, but services are running"
+    fi
+    
+    log_info "Deployment verification completed"
+}
+
+# Setup firewall
+setup_firewall() {
+    log_info "Configuring firewall..."
+    
+    if command -v ufw &> /dev/null; then
+        # Configure UFW if available
+        sudo ufw --force reset
+        sudo ufw default deny incoming
+        sudo ufw default allow outgoing
+        sudo ufw allow ssh
+        sudo ufw allow 80/tcp
+        sudo ufw allow 443/tcp
+        sudo ufw --force enable
+        
+        log_info "Firewall configured ✅"
+    else
+        log_warn "UFW not found, skipping firewall configuration"
+    fi
+}
+
+# Create backup script
+create_backup_script() {
+    log_info "Creating backup script..."
+    
+    cat > backup.sh << 'EOF'
+#!/bin/bash
+# AI-HACCP Backup Script
+
+BACKUP_DIR="backups"
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_FILE="$BACKUP_DIR/ai_haccp_backup_$DATE.sql"
+
+mkdir -p "$BACKUP_DIR"
+
+echo "Creating backup: $BACKUP_FILE"
+docker-compose -f docker-compose.prod.yml exec -T postgres pg_dump -U postgres ai_haccp > "$BACKUP_FILE"
+
+if [[ $? -eq 0 ]]; then
+    echo "Backup created successfully: $BACKUP_FILE"
+    
+    # Keep only last 7 backups
+    ls -t "$BACKUP_DIR"/ai_haccp_backup_*.sql | tail -n +8 | xargs -r rm
+    echo "Old backups cleaned up"
+else
+    echo "Backup failed!"
+    exit 1
+fi
+EOF
+    
+    chmod +x backup.sh
+    log_info "Backup script created ✅"
+}
+
+# Main deployment process
+main() {
+    log_info "Starting AI-HACCP production deployment..."
+    
+    check_prerequisites
+    generate_secrets
+    setup_ssl
+    deploy_services
+    verify_deployment
+    setup_firewall
+    create_backup_script
+    
+    echo ""
+    echo "🎉 Deployment completed successfully!"
+    echo "=================================="
+    echo "🌐 Web Interface: https://$DOMAIN"
+    echo "📚 API Documentation: https://$DOMAIN/docs"
+    echo "🔑 Demo Login: admin@restaurant.com / password"
+    echo ""
+    echo "📋 Next Steps:"
+    echo "1. Test the application at https://$DOMAIN"
+    echo "2. Change default demo password"
+    echo "3. Configure DNS to point to this server"
+    echo "4. Set up automated backups: ./backup.sh"
+    echo "5. Monitor logs: docker-compose -f docker-compose.prod.yml logs -f"
+    echo ""
+    echo "🔧 Management Commands:"
+    echo "- View logs: make logs"
+    echo "- Backup database: ./backup.sh"
+    echo "- Stop services: make stop"
+    echo "- Update application: git pull && make prod"
+}
+
+# Handle script arguments
+case "${1:-deploy}" in
+    "deploy")
+        main
+        ;;
+    "ssl")
+        setup_ssl
+        ;;
+    "backup")
+        create_backup_script
+        ./backup.sh
+        ;;
+    "verify")
+        verify_deployment
+        ;;
+    *)
+        echo "Usage: $0 [deploy|ssl|backup|verify]"
+        echo "  deploy  - Full production deployment (default)"
+        echo "  ssl     - Setup SSL certificates only"
+        echo "  backup  - Create database backup"
+        echo "  verify  - Verify deployment status"
+        exit 1
+        ;;
+esac
