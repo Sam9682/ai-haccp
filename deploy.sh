@@ -291,8 +291,8 @@ check_status() {
 }
 
 # Handle script arguments
-case "${1:-deploy}" in
-    "deploy")
+case "${1:-start}" in
+    "start")
         main
         ;;
     "ssl")
@@ -312,8 +312,8 @@ case "${1:-deploy}" in
         check_status
         ;;
     *)
-        echo "Usage: $0 [deploy|ssl|backup|verify|stop|status]"
-        echo "  deploy  - Full production deployment (default)"
+        echo "Usage: $0 [start|ssl|backup|verify|stop|status]"
+        echo "  start   - Full production deployment (default)"
         echo "  ssl     - Setup SSL certificates only"
         echo "  backup  - Create database backup"
         echo "  verify  - Verify deployment status"
