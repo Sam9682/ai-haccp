@@ -1,35 +1,18 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   api:
     build: ./backend
     ports:
       - "9001:9001"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ai_haccp
+      DATABASE_URL: sqlite:///./ai_haccp.db
       JWT_SECRET: your-secret-key
       PYTHONPATH: /app
-    depends_on:
-      postgres:
-        condition: service_healthy
     volumes:
       - ./backend:/app
       - ./uploads:/app/uploads
+      - ./data:/app/data
     restart: unless-stopped
 
   frontend:
@@ -49,17 +32,15 @@ services:
     build: ./backend
     command: python mcp_server.py
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ai_haccp
+      DATABASE_URL: sqlite:///./ai_haccp.db
       PYTHONPATH: /app
-    depends_on:
-      postgres:
-        condition: service_healthy
     volumes:
       - ./backend:/app
+      - ./data:/app/data
     restart: unless-stopped
     profiles:
       - mcp
 
 volumes:
-  postgres_data:
   uploads:
+  data:

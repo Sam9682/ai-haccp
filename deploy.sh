@@ -65,10 +65,8 @@ generate_secrets() {
         JWT_SECRET=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
         
         cat > "$ENV_FILE" << EOF
-# Database Configuration
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=$DB_PASSWORD
-POSTGRES_DB=ai_haccp
+# Database Configuration (SQLite)
+DATABASE_URL=sqlite:///./data/ai_haccp.db
 
 # Security
 JWT_SECRET=$JWT_SECRET
@@ -213,18 +211,19 @@ create_backup_script() {
 
 BACKUP_DIR="backups"
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="$BACKUP_DIR/ai_haccp_backup_$DATE.sql"
+BACKUP_FILE="$BACKUP_DIR/ai_haccp_backup_$DATE"
 
 mkdir -p "$BACKUP_DIR"
 
 echo "Creating backup: $BACKUP_FILE"
-docker-compose -f docker-compose.prod.yml exec -T postgres pg_dump -U postgres ai_haccp > "$BACKUP_FILE"
+docker-compose -f docker-compose.prod.yml exec -T api cp /app/data/ai_haccp.db /tmp/backup.db
+docker cp $(docker-compose -f docker-compose.prod.yml ps -q api):/tmp/backup.db "$BACKUP_FILE.db"
 
 if [[ $? -eq 0 ]]; then
     echo "Backup created successfully: $BACKUP_FILE"
     
     # Keep only last 7 backups
-    ls -t "$BACKUP_DIR"/ai_haccp_backup_*.sql | tail -n +8 | xargs -r rm
+    ls -t "$BACKUP_DIR"/ai_haccp_backup_*.db | tail -n +8 | xargs -r rm
     echo "Old backups cleaned up"
 else
     echo "Backup failed!"

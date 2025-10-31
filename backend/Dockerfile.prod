@@ -13,8 +13,8 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Create uploads directory
-RUN mkdir -p uploads/reception_images
+# Create uploads and data directories
+RUN mkdir -p uploads/reception_images data
 
 EXPOSE 9001
 
