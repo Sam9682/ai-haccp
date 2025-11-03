@@ -25,7 +25,12 @@ def init_database():
         
         # Check if demo data exists
         db = SessionLocal()
-        result = db.execute(text("SELECT COUNT(*) FROM organizations")).fetchone()
+        try:
+            result = db.execute(text("SELECT COUNT(*) FROM organizations")).fetchone()
+        except:
+            # Tables might not exist yet, create them first
+            Base.metadata.create_all(bind=engine)
+            result = db.execute(text("SELECT COUNT(*) FROM organizations")).fetchone()
         
         if result[0] == 0:
             # Insert demo data

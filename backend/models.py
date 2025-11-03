@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, DECIMAL, Date, ForeignKey, ARRAY
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, DECIMAL, Date, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -36,7 +35,7 @@ class UsageLog(Base):
     organization_id = Column(Integer, ForeignKey("organizations.id"))
     action_type = Column(String(100), nullable=False)
     resource_used = Column(DECIMAL(10,6), nullable=False)
-    metadata = Column(JSONB)
+    metadata = Column(JSON)
     created_at = Column(DateTime, server_default=func.now())
 
 class Product(Base):
@@ -46,7 +45,7 @@ class Product(Base):
     organization_id = Column(Integer, ForeignKey("organizations.id"))
     name = Column(String(255), nullable=False)
     category = Column(String(100))
-    allergens = Column(ARRAY(Text))
+    allergens = Column(JSON)
     shelf_life_days = Column(Integer)
     storage_temp_min = Column(DECIMAL(5,2))
     storage_temp_max = Column(DECIMAL(5,2))
@@ -58,7 +57,7 @@ class Supplier(Base):
     id = Column(Integer, primary_key=True, index=True)
     organization_id = Column(Integer, ForeignKey("organizations.id"))
     name = Column(String(255), nullable=False)
-    contact_info = Column(JSONB)
+    contact_info = Column(JSON)
     certification_status = Column(String(50))
     risk_level = Column(Integer, default=1)
     created_at = Column(DateTime, server_default=func.now())
@@ -82,7 +81,7 @@ class CleaningRecord(Base):
     organization_id = Column(Integer, ForeignKey("organizations.id"))
     area = Column(String(255), nullable=False)
     cleaning_type = Column(String(100))
-    products_used = Column(ARRAY(Text))
+    products_used = Column(JSON)
     performed_by = Column(Integer, ForeignKey("users.id"))
     verified_by = Column(Integer, ForeignKey("users.id"))
     notes = Column(Text)
@@ -125,7 +124,7 @@ class CleaningPlan(Base):
     organization_id = Column(Integer, ForeignKey("organizations.id"))
     name = Column(String(255), nullable=False)
     description = Column(Text)
-    rooms = Column(JSONB)
+    rooms = Column(JSON)
     cleaning_frequency = Column(String(50), nullable=False)
     estimated_duration = Column(Integer)
     created_at = Column(DateTime, server_default=func.now())
@@ -161,7 +160,7 @@ class MaterialReception(Base):
     temperature_on_arrival = Column(DECIMAL(5,2))
     quality_notes = Column(Text)
     image_path = Column(String(500))
-    ai_analysis = Column(JSONB)
+    ai_analysis = Column(JSON)
     received_by = Column(Integer, ForeignKey("users.id"))
     received_at = Column(DateTime, server_default=func.now())
     

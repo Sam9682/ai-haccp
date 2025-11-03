@@ -55,8 +55,6 @@ services:
     restart: always
     networks:
       - haccp-network
-    profiles:
-      - mcp
 
 volumes:
   uploads:

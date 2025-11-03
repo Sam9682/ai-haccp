@@ -25,6 +25,12 @@ app = FastAPI(title="AI-HACCP Platform", version="1.0.0")
 @app.on_event("startup")
 async def startup_event():
     init_database()
+    # Ensure demo user exists
+    try:
+        from create_demo_user import create_demo_user
+        create_demo_user()
+    except Exception as e:
+        print(f"Warning: Could not create demo user: {e}")
 
 app.add_middleware(
     CORSMiddleware,
