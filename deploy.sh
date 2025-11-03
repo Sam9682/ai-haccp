@@ -290,7 +290,7 @@ check_status() {
 }
 
 # Handle script arguments
-case "${1:-start}" in
+case "${1:-help}" in
     "start")
         main
         ;;
@@ -310,14 +310,25 @@ case "${1:-start}" in
     "status")
         check_status
         ;;
-    *)
-        echo "Usage: $0 [start|ssl|backup|verify|stop|status]"
-        echo "  start   - Full production deployment (default)"
+    "help")
+        echo "Usage: $0 [start|ssl|backup|verify|stop|status|help]"
+        echo "  start   - Full production deployment"
         echo "  ssl     - Setup SSL certificates only"
         echo "  backup  - Create database backup"
         echo "  verify  - Verify deployment status"
         echo "  stop    - Stop all services"
         echo "  status  - Check service status"
+        echo "  help    - Show this help message (default)"
+        ;;
+    *)
+        echo "Usage: $0 [start|ssl|backup|verify|stop|status|help]"
+        echo "  start   - Full production deployment"
+        echo "  ssl     - Setup SSL certificates only"
+        echo "  backup  - Create database backup"
+        echo "  verify  - Verify deployment status"
+        echo "  stop    - Stop all services"
+        echo "  status  - Check service status"
+        echo "  help    - Show this help message (default)"
         exit 1
         ;;
 esac
