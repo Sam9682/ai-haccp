@@ -15,10 +15,13 @@ import {
 } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import api from '../services/api';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations/translations';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export default function UsageReport() {
+  const { language } = useLanguage();
   const [usageData, setUsageData] = useState({
     total_cost: 0,
     monthly_cost: 0,
@@ -48,13 +51,13 @@ export default function UsageReport() {
   }));
 
   if (loading) {
-    return <Typography>Loading usage report...</Typography>;
+    return <Typography>{t('loadingUsageReport', language)}</Typography>;
   }
 
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Usage & Cost Report
+        {t('usageCostReport', language)}
       </Typography>
       
       <Grid container spacing={3}>
@@ -62,7 +65,7 @@ export default function UsageReport() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Total Cost
+                {t('totalCost', language)}
               </Typography>
               <Typography variant="h4">
                 ${usageData.total_cost.toFixed(4)}
@@ -75,7 +78,7 @@ export default function UsageReport() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Monthly Cost
+                {t('monthlyCost', language)}
               </Typography>
               <Typography variant="h4">
                 ${usageData.monthly_cost.toFixed(4)}
@@ -88,13 +91,13 @@ export default function UsageReport() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Cost per User
+                {t('costPerUser', language)}
               </Typography>
               <Typography variant="h4">
                 ${(usageData.monthly_cost / 1).toFixed(4)}
               </Typography>
               <Typography variant="body2" color="textSecondary">
-                (Estimated)
+                {t('estimated', language)}
               </Typography>
             </CardContent>
           </Card>
@@ -104,13 +107,13 @@ export default function UsageReport() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Serverless Savings
+                {t('serverlessSavings', language)}
               </Typography>
               <Typography variant="h4" color="success.main">
                 ~85%
               </Typography>
               <Typography variant="body2" color="textSecondary">
-                vs Traditional
+                {t('vsTraditional', language)}
               </Typography>
             </CardContent>
           </Card>
@@ -120,7 +123,7 @@ export default function UsageReport() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Cost Breakdown by Action
+                {t('costBreakdownByAction', language)}
               </Typography>
               {chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
@@ -144,7 +147,7 @@ export default function UsageReport() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <Typography>No usage data available</Typography>
+                <Typography>{t('noUsageData', language)}</Typography>
               )}
             </CardContent>
           </Card>
@@ -154,16 +157,16 @@ export default function UsageReport() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Usage Details
+                {t('usageDetails', language)}
               </Typography>
               <TableContainer>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Action Type</TableCell>
-                      <TableCell align="right">Count</TableCell>
-                      <TableCell align="right">Total Cost</TableCell>
-                      <TableCell align="right">Avg Cost</TableCell>
+                      <TableCell>{t('actionType', language)}</TableCell>
+                      <TableCell align="right">{t('count', language)}</TableCell>
+                      <TableCell align="right">{t('totalCostCol', language)}</TableCell>
+                      <TableCell align="right">{t('avgCost', language)}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -186,39 +189,39 @@ export default function UsageReport() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Cost Optimization Features
+                {t('costOptimizationFeatures', language)}
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} md={3}>
                   <Typography variant="subtitle2" color="primary">
-                    Serverless Architecture
+                    {t('serverlessArchitecture', language)}
                   </Typography>
                   <Typography variant="body2">
-                    Pay only for actual usage, no idle server costs
+                    {t('payOnlyForUsage', language)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <Typography variant="subtitle2" color="primary">
-                    Shared Infrastructure
+                    {t('sharedInfrastructure', language)}
                   </Typography>
                   <Typography variant="body2">
-                    Cost distributed among all platform users
+                    {t('costDistributed', language)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <Typography variant="subtitle2" color="primary">
-                    Usage-Based Billing
+                    {t('usageBasedBilling', language)}
                   </Typography>
                   <Typography variant="body2">
-                    Transparent pricing based on actual resource consumption
+                    {t('transparentPricing', language)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <Typography variant="subtitle2" color="primary">
-                    Auto-Scaling
+                    {t('autoScaling', language)}
                   </Typography>
                   <Typography variant="body2">
-                    Resources scale automatically with demand
+                    {t('resourcesScale', language)}
                   </Typography>
                 </Grid>
               </Grid>

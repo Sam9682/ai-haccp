@@ -20,13 +20,17 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, CleaningServices as CleanIcon } from '@mui/icons-material';
 import api from '../services/api';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations/translations';
 
 export default function CleaningPlan() {
+  const { language } = useLanguage();
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [open, setOpen] = useState(false);
   const [roomCleanings, setRoomCleanings] = useState([]);
   const canvasRef = useRef(null);
+  const dialogCanvasRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -47,6 +51,12 @@ export default function CleaningPlan() {
       drawPlan(selectedPlan);
     }
   }, [selectedPlan]);
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => drawDialogCanvas(), 100);
+    }
+  }, [open, formData.rooms]);
 
   const fetchPlans = async () => {
     try {
@@ -139,10 +149,45 @@ export default function CleaningPlan() {
     }
   };
 
+  const drawDialogCanvas = () => {
+    const canvas = dialogCanvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw background
+    ctx.fillStyle = '#f9f9f9';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw existing rooms
+    formData.rooms.forEach(room => {
+      ctx.fillStyle = '#e3f2fd';
+      ctx.fillRect(room.x, room.y, room.width, room.height);
+      ctx.strokeStyle = '#1976d2';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(room.x, room.y, room.width, room.height);
+      
+      ctx.fillStyle = '#333';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(room.name, room.x + room.width/2, room.y + room.height/2);
+    });
+
+    // Draw current room being drawn
+    if (isDrawing && currentRoom.width !== 0 && currentRoom.height !== 0) {
+      ctx.fillStyle = 'rgba(76, 175, 80, 0.3)';
+      ctx.fillRect(currentRoom.x, currentRoom.y, currentRoom.width, currentRoom.height);
+      ctx.strokeStyle = '#4caf50';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(currentRoom.x, currentRoom.y, currentRoom.width, currentRoom.height);
+    }
+  };
+
   const handleMouseDown = (event) => {
     if (!open) return;
     
-    const canvas = canvasRef.current;
+    const canvas = dialogCanvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -154,7 +199,7 @@ export default function CleaningPlan() {
   const handleMouseMove = (event) => {
     if (!isDrawing || !open) return;
     
-    const canvas = canvasRef.current;
+    const canvas = dialogCanvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -164,21 +209,31 @@ export default function CleaningPlan() {
       width: x - prev.x,
       height: y - prev.y
     }));
+    
+    drawDialogCanvas();
   };
 
   const handleMouseUp = () => {
     if (!isDrawing) return;
     
     setIsDrawing(false);
-    if (currentRoom.width > 20 && currentRoom.height > 20) {
+    if (Math.abs(currentRoom.width) > 20 && Math.abs(currentRoom.height) > 20) {
       const roomName = prompt('Enter room name:');
       if (roomName) {
+        const normalizedRoom = {
+          name: roomName,
+          x: currentRoom.width < 0 ? currentRoom.x + currentRoom.width : currentRoom.x,
+          y: currentRoom.height < 0 ? currentRoom.y + currentRoom.height : currentRoom.y,
+          width: Math.abs(currentRoom.width),
+          height: Math.abs(currentRoom.height)
+        };
         setFormData(prev => ({
           ...prev,
-          rooms: [...prev.rooms, { ...currentRoom, name: roomName }]
+          rooms: [...prev.rooms, normalizedRoom]
         }));
       }
     }
+    setCurrentRoom({ name: '', x: 0, y: 0, width: 0, height: 0 });
   };
 
   const handleSubmit = async (e) => {
@@ -206,26 +261,26 @@ export default function CleaningPlan() {
 
   const getRoomStatus = (roomName) => {
     const lastCleaning = roomCleanings.find(c => c.room_name === roomName);
-    if (!lastCleaning) return { status: 'Never cleaned', color: 'error' };
+    if (!lastCleaning) return { status: t('neverCleaned', language), color: 'error' };
     
     const cleanedAt = new Date(lastCleaning.cleaned_at);
     const hoursAgo = (Date.now() - cleanedAt.getTime()) / (1000 * 60 * 60);
     
-    if (hoursAgo < 24) return { status: 'Recently cleaned', color: 'success' };
-    if (hoursAgo < 48) return { status: 'Needs attention', color: 'warning' };
-    return { status: 'Overdue', color: 'error' };
+    if (hoursAgo < 24) return { status: t('recentlyCleaned', language), color: 'success' };
+    if (hoursAgo < 48) return { status: t('needsAttention', language), color: 'warning' };
+    return { status: t('overdue', language), color: 'error' };
   };
 
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Cleaning Management</Typography>
+        <Typography variant="h4">{t('cleaningManagement', language)}</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setOpen(true)}
         >
-          Create Plan
+          {t('createPlan', language)}
         </Button>
       </Box>
 
@@ -234,12 +289,12 @@ export default function CleaningPlan() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Interactive Cleaning Plan
+                {t('interactiveCleaningPlan', language)}
                 {selectedPlan && ` - ${selectedPlan.name}`}
               </Typography>
               
               <Alert severity="info" sx={{ mb: 2 }}>
-                Click on any room to mark it as cleaned. Green rooms are recently cleaned, red rooms need attention.
+                {t('clickRoomInfo', language)}
               </Alert>
 
               <canvas
@@ -265,7 +320,7 @@ export default function CleaningPlan() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Room Status
+                {t('roomStatus', language)}
               </Typography>
               
               {selectedPlan && selectedPlan.rooms && selectedPlan.rooms.map((room, index) => {
@@ -283,7 +338,7 @@ export default function CleaningPlan() {
               })}
 
               <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-                Available Plans
+                {t('availablePlans', language)}
               </Typography>
               
               {plans.map((plan) => (
@@ -304,14 +359,14 @@ export default function CleaningPlan() {
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
         <form onSubmit={handleSubmit}>
-          <DialogTitle>Create Cleaning Plan</DialogTitle>
+          <DialogTitle>{t('createCleaningPlan', language)}</DialogTitle>
           <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   autoFocus
                   margin="dense"
-                  label="Plan Name"
+                  label={t('planName', language)}
                   fullWidth
                   variant="outlined"
                   value={formData.name}
@@ -321,21 +376,21 @@ export default function CleaningPlan() {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth margin="dense">
-                  <InputLabel>Frequency</InputLabel>
+                  <InputLabel>{t('frequency', language)}</InputLabel>
                   <Select
                     value={formData.cleaning_frequency}
                     onChange={(e) => setFormData({ ...formData, cleaning_frequency: e.target.value })}
                   >
-                    <MenuItem value="daily">Daily</MenuItem>
-                    <MenuItem value="weekly">Weekly</MenuItem>
-                    <MenuItem value="monthly">Monthly</MenuItem>
+                    <MenuItem value="daily">{t('daily', language)}</MenuItem>
+                    <MenuItem value="weekly">{t('weekly', language)}</MenuItem>
+                    <MenuItem value="monthly">{t('monthly', language)}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   margin="dense"
-                  label="Description"
+                  label={t('description', language)}
                   fullWidth
                   multiline
                   rows={2}
@@ -347,7 +402,7 @@ export default function CleaningPlan() {
               <Grid item xs={12}>
                 <TextField
                   margin="dense"
-                  label="Estimated Duration (minutes)"
+                  label={t('estimatedDuration', language)}
                   type="number"
                   fullWidth
                   variant="outlined"
@@ -357,9 +412,10 @@ export default function CleaningPlan() {
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="body2" color="textSecondary">
-                  Draw rooms on the canvas by clicking and dragging. Each room will be clickable for cleaning tracking.
+                  {t('drawRoomsInfo', language)}
                 </Typography>
                 <canvas
+                  ref={dialogCanvasRef}
                   width={500}
                   height={300}
                   style={{ border: '1px solid #ccc', cursor: 'crosshair', width: '100%' }}
@@ -371,8 +427,8 @@ export default function CleaningPlan() {
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">Create Plan</Button>
+            <Button onClick={() => setOpen(false)}>{t('cancel', language)}</Button>
+            <Button type="submit" variant="contained">{t('createPlan', language)}</Button>
           </DialogActions>
         </form>
       </Dialog>

@@ -57,7 +57,7 @@ Add to your AI client's MCP configuration:
       "command": "python",
       "args": ["mcp_server.py"],
       "env": {
-        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/ai_haccp"
+        "DATABASE_URL": "postgresql://postgres:postgres@188.165.71.139:5432/ai_haccp"
       }
     }
   }

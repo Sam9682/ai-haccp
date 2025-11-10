@@ -15,8 +15,11 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import api from '../services/api';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations/translations';
 
 export default function Products() {
+  const { language } = useLanguage();
   const [products, setProducts] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -84,24 +87,24 @@ export default function Products() {
       fetchProducts();
     } catch (error) {
       console.error('Error creating product:', error);
-      alert('Error creating product: ' + (error.response?.data?.detail || error.message));
+      alert(t('errorCreatingProduct', language) + ': ' + (error.response?.data?.detail || error.message));
     }
   };
 
   if (loading) {
-    return <Typography>Loading products...</Typography>;
+    return <Typography>{t('loadingProducts', language)}</Typography>;
   }
 
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Product Management</Typography>
+        <Typography variant="h4">{t('productManagement', language)}</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleAddClick}
         >
-          Add Product
+          {t('addProduct', language)}
         </Button>
       </Box>
 
@@ -114,20 +117,20 @@ export default function Products() {
                   {product.name}
                 </Typography>
                 <Typography color="textSecondary" gutterBottom>
-                  Category: {product.category || 'N/A'}
+                  {t('category', language)}: {product.category || 'N/A'}
                 </Typography>
                 <Typography variant="body2" gutterBottom>
-                  Shelf Life: {product.shelf_life_days ? `${product.shelf_life_days} days` : 'N/A'}
+                  {t('shelfLife', language)}: {product.shelf_life_days ? `${product.shelf_life_days} ${t('days', language)}` : 'N/A'}
                 </Typography>
                 <Typography variant="body2" gutterBottom>
-                  Storage: {product.storage_temp_min && product.storage_temp_max 
+                  {t('storage', language)}: {product.storage_temp_min && product.storage_temp_max 
                     ? `${product.storage_temp_min}°C to ${product.storage_temp_max}°C` 
                     : 'N/A'}
                 </Typography>
                 {product.allergens && product.allergens.length > 0 && (
                   <Box mt={1}>
                     <Typography variant="body2" gutterBottom>
-                      Allergens:
+                      {t('allergens', language)}:
                     </Typography>
                     {product.allergens.map((allergen, index) => (
                       <Chip
@@ -148,14 +151,14 @@ export default function Products() {
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
         <form onSubmit={handleSubmit}>
-          <DialogTitle>Add New Product</DialogTitle>
+          <DialogTitle>{t('addNewProduct', language)}</DialogTitle>
           <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   autoFocus
                   margin="dense"
-                  label="Product Name"
+                  label={t('productName', language)}
                   fullWidth
                   variant="outlined"
                   value={formData.name}
@@ -166,7 +169,7 @@ export default function Products() {
               <Grid item xs={12} sm={6}>
                 <TextField
                   margin="dense"
-                  label="Category"
+                  label={t('category', language)}
                   fullWidth
                   variant="outlined"
                   value={formData.category}
@@ -176,7 +179,7 @@ export default function Products() {
               <Grid item xs={12}>
                 <TextField
                   margin="dense"
-                  label="Allergens (comma separated)"
+                  label={t('allergensCommaSeparated', language)}
                   fullWidth
                   variant="outlined"
                   value={formData.allergens}
@@ -187,7 +190,7 @@ export default function Products() {
               <Grid item xs={12} sm={4}>
                 <TextField
                   margin="dense"
-                  label="Shelf Life (days)"
+                  label={t('shelfLifeDays', language)}
                   type="number"
                   fullWidth
                   variant="outlined"
@@ -198,7 +201,7 @@ export default function Products() {
               <Grid item xs={12} sm={4}>
                 <TextField
                   margin="dense"
-                  label="Min Storage Temp (°C)"
+                  label={t('minStorageTemp', language)}
                   type="number"
                   fullWidth
                   variant="outlined"
@@ -209,7 +212,7 @@ export default function Products() {
               <Grid item xs={12} sm={4}>
                 <TextField
                   margin="dense"
-                  label="Max Storage Temp (°C)"
+                  label={t('maxStorageTemp', language)}
                   type="number"
                   fullWidth
                   variant="outlined"
@@ -220,8 +223,8 @@ export default function Products() {
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">Add Product</Button>
+            <Button onClick={() => setOpen(false)}>{t('cancel', language)}</Button>
+            <Button type="submit" variant="contained">{t('addProduct', language)}</Button>
           </DialogActions>
         </form>
       </Dialog>

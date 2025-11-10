@@ -9,9 +9,9 @@ help: ## Show this help message
 dev: ## Start development environment
 	docker-compose up -d
 	@echo "🚀 Development environment started!"
-	@echo "Frontend: http://localhost:3000"
-	@echo "Backend API: http://localhost:8000"
-	@echo "API Docs: http://localhost:8000/docs"
+	@echo "Frontend: http://188.165.71.139:3000"
+	@echo "Backend API: http://188.165.71.139:8000"
+	@echo "API Docs: http://188.165.71.139:8000/docs"
 
 prod: ## Start production environment
 	docker-compose -f docker-compose.prod.yml up -d

@@ -9,6 +9,9 @@ import {
   Alert
 } from '@mui/material';
 import { useAuth } from '../services/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations/translations';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
@@ -17,6 +20,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, user } = useAuth();
+  const { language } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,6 +56,9 @@ export default function Login() {
         }}
       >
         <Paper elevation={3} sx={{ padding: 4, width: '100%' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <LanguageSwitcher />
+          </Box>
           <Typography component="h1" variant="h4" align="center" gutterBottom>
             AI-HACCP
           </Typography>
@@ -67,7 +74,7 @@ export default function Login() {
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label={t('emailAddress', language)}
               name="email"
               autoComplete="email"
               autoFocus
@@ -79,7 +86,7 @@ export default function Login() {
               required
               fullWidth
               name="password"
-              label="Password"
+              label={t('password', language)}
               type="password"
               id="password"
               autoComplete="current-password"
@@ -93,12 +100,12 @@ export default function Login() {
               sx={{ mt: 3, mb: 2 }}
               disabled={loading}
             >
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? t('signingIn', language) : t('signIn', language)}
             </Button>
           </Box>
           
           <Typography variant="body2" color="textSecondary" align="center" sx={{ mt: 2 }}>
-            Demo: admin@lebouzou.com / password
+            {t('demo', language)}
           </Typography>
         </Paper>
       </Box>

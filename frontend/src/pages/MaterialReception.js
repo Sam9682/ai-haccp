@@ -35,11 +35,15 @@ import {
   Inventory as InventoryIcon
 } from '@mui/icons-material';
 import api from '../services/api';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations/translations';
 
 export default function MaterialReception() {
+  const { language } = useLanguage();
   const [receptions, setReceptions] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [open, setOpen] = useState(false);
+  const [supplierDialogOpen, setSupplierDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -60,6 +64,13 @@ export default function MaterialReception() {
     temperature_on_arrival: '',
     quality_notes: '',
     image_data: null
+  });
+
+  const [supplierFormData, setSupplierFormData] = useState({
+    name: '',
+    contact_person: '',
+    email: '',
+    phone: ''
   });
 
   const categories = [
@@ -241,6 +252,20 @@ export default function MaterialReception() {
     setCameraActive(false);
   };
 
+  const handleSupplierSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await api.post('/suppliers', supplierFormData);
+      setSupplierDialogOpen(false);
+      setSupplierFormData({ name: '', contact_person: '', email: '', phone: '' });
+      fetchSuppliers();
+      setFormData({ ...formData, supplier_id: response.data.id });
+    } catch (error) {
+      console.error('Error creating supplier:', error);
+      alert('Failed to create supplier');
+    }
+  };
+
   const getCategoryColor = (category) => {
     const colors = {
       meat: 'error', poultry: 'warning', seafood: 'info',
@@ -250,37 +275,37 @@ export default function MaterialReception() {
   };
 
   if (loading) {
-    return <Typography>Loading material receptions...</Typography>;
+    return <Typography>{t('loading', language)}</Typography>;
   }
 
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Material Reception</Typography>
+        <Typography variant="h4">{t('materialReception', language)}</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setOpen(true)}
         >
-          Receive Materials
+          {t('receiveMaterials', language)}
         </Button>
       </Box>
 
       <Alert severity="info" sx={{ mb: 3 }}>
-        📦 Record all incoming materials with barcode scanning and AI-powered image recognition
+        {t('materialReceptionInfo', language)}
       </Alert>
 
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Product</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Expiry Date</TableCell>
-              <TableCell>Temperature</TableCell>
-              <TableCell>Received</TableCell>
-              <TableCell>AI Analysis</TableCell>
+              <TableCell>{t('product', language)}</TableCell>
+              <TableCell>{t('category', language)}</TableCell>
+              <TableCell>{t('quantity', language)}</TableCell>
+              <TableCell>{t('expiryDate', language)}</TableCell>
+              <TableCell>{t('temperature', language)}</TableCell>
+              <TableCell>{t('received', language)}</TableCell>
+              <TableCell>{t('aiAnalysis', language)}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -292,7 +317,7 @@ export default function MaterialReception() {
                   </Typography>
                   {reception.barcode && (
                     <Typography variant="caption" color="textSecondary">
-                      Barcode: {reception.barcode}
+                      {t('barcode', language)}: {reception.barcode}
                     </Typography>
                   )}
                 </TableCell>
@@ -335,7 +360,7 @@ export default function MaterialReception() {
           <DialogTitle>
             <Box display="flex" alignItems="center">
               <InventoryIcon sx={{ mr: 1 }} />
-              Receive New Materials
+              {t('receiveMaterials', language)}
             </Box>
           </DialogTitle>
           <DialogContent>
@@ -346,7 +371,7 @@ export default function MaterialReception() {
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
                       <AIIcon sx={{ mr: 1 }} />
-                      AI-Powered Recognition
+                      {t('aiAnalysis', language)}
                     </Typography>
                     
                     <Box display="flex" gap={1} mb={2}>
@@ -356,14 +381,14 @@ export default function MaterialReception() {
                         onClick={startCamera}
                         disabled={cameraActive}
                       >
-                        Take Photo
+                        {t('takePhoto', language)}
                       </Button>
                       <Button
                         variant="outlined"
                         startIcon={<AddIcon />}
                         onClick={() => fileInputRef.current?.click()}
                       >
-                        Upload Image
+                        {t('uploadImage', language)}
                       </Button>
                     </Box>
 
@@ -380,7 +405,7 @@ export default function MaterialReception() {
                           onClick={capturePhoto}
                           fullWidth
                         >
-                          Capture Photo
+                          {t('takePhoto', language)}
                         </Button>
                       </Box>
                     )}
@@ -395,7 +420,7 @@ export default function MaterialReception() {
                         {aiAnalyzing && (
                           <Box display="flex" alignItems="center" mt={1}>
                             <CircularProgress size={20} sx={{ mr: 1 }} />
-                            <Typography variant="body2">AI analyzing image...</Typography>
+                            <Typography variant="body2">{t('aiAnalyzing', language)}</Typography>
                           </Box>
                         )}
                       </Box>
@@ -415,37 +440,46 @@ export default function MaterialReception() {
 
               {/* Form Fields */}
               <Grid item xs={12} sm={6}>
-                <FormControl fullWidth required>
-                  <InputLabel>Supplier</InputLabel>
-                  <Select
-                    value={formData.supplier_id}
-                    onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
+                <Box display="flex" gap={1}>
+                  <FormControl fullWidth required>
+                    <InputLabel>{t('supplier', language)}</InputLabel>
+                    <Select
+                      value={formData.supplier_id}
+                      onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
+                    >
+                      {suppliers.map((supplier) => (
+                        <MenuItem key={supplier.id} value={supplier.id}>
+                          {supplier.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setSupplierDialogOpen(true)}
+                    sx={{ minWidth: 'auto', px: 1 }}
                   >
-                    {suppliers.map((supplier) => (
-                      <MenuItem key={supplier.id} value={supplier.id}>
-                        {supplier.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                    <AddIcon />
+                  </Button>
+                </Box>
               </Grid>
 
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Barcode"
+                  label={t('barcode', language)}
                   fullWidth
                   value={formData.barcode}
                   onChange={handleBarcodeInput}
                   InputProps={{
                     endAdornment: <BarcodeIcon color="action" />
                   }}
-                  placeholder="Scan or enter barcode"
+                  placeholder={t('scanBarcode', language)}
                 />
               </Grid>
 
               <Grid item xs={12} sm={8}>
                 <TextField
-                  label="Product Name"
+                  label={t('productName', language)}
                   fullWidth
                   required
                   value={formData.product_name}
@@ -455,7 +489,7 @@ export default function MaterialReception() {
 
               <Grid item xs={12} sm={4}>
                 <FormControl fullWidth required>
-                  <InputLabel>Category</InputLabel>
+                  <InputLabel>{t('category', language)}</InputLabel>
                   <Select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -471,7 +505,7 @@ export default function MaterialReception() {
 
               <Grid item xs={12} sm={4}>
                 <TextField
-                  label="Quantity"
+                  label={t('quantity', language)}
                   type="number"
                   fullWidth
                   required
@@ -482,7 +516,7 @@ export default function MaterialReception() {
 
               <Grid item xs={12} sm={4}>
                 <FormControl fullWidth>
-                  <InputLabel>Unit</InputLabel>
+                  <InputLabel>{t('unit', language)}</InputLabel>
                   <Select
                     value={formData.unit}
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
@@ -498,7 +532,7 @@ export default function MaterialReception() {
 
               <Grid item xs={12} sm={4}>
                 <TextField
-                  label="Temperature on Arrival (°C)"
+                  label={t('temperatureOnArrival', language) + ' (°C)'}
                   type="number"
                   fullWidth
                   value={formData.temperature_on_arrival}
@@ -508,7 +542,7 @@ export default function MaterialReception() {
 
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Expiry Date"
+                  label={t('expiryDate', language)}
                   type="date"
                   fullWidth
                   InputLabelProps={{ shrink: true }}
@@ -519,7 +553,7 @@ export default function MaterialReception() {
 
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Batch Number"
+                  label={t('batchNumber', language)}
                   fullWidth
                   value={formData.batch_number}
                   onChange={(e) => setFormData({ ...formData, batch_number: e.target.value })}
@@ -528,23 +562,76 @@ export default function MaterialReception() {
 
               <Grid item xs={12}>
                 <TextField
-                  label="Quality Notes"
+                  label={t('qualityNotes', language)}
                   fullWidth
                   multiline
                   rows={2}
                   value={formData.quality_notes}
                   onChange={(e) => setFormData({ ...formData, quality_notes: e.target.value })}
-                  placeholder="Any quality observations, damage, or special notes..."
+                  placeholder={t('qualityNotes', language) + '...'}
                 />
               </Grid>
             </Grid>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => { setOpen(false); resetForm(); }}>
+              {t('cancel', language)}
+            </Button>
+            <Button type="submit" variant="contained">
+              {t('save', language)}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* Supplier Creation Dialog */}
+      <Dialog open={supplierDialogOpen} onClose={() => setSupplierDialogOpen(false)} maxWidth="sm" fullWidth>
+        <form onSubmit={handleSupplierSubmit}>
+          <DialogTitle>Create New Supplier</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Supplier Name"
+                  fullWidth
+                  required
+                  value={supplierFormData.name}
+                  onChange={(e) => setSupplierFormData({ ...supplierFormData, name: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Contact Person"
+                  fullWidth
+                  value={supplierFormData.contact_person}
+                  onChange={(e) => setSupplierFormData({ ...supplierFormData, contact_person: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  value={supplierFormData.email}
+                  onChange={(e) => setSupplierFormData({ ...supplierFormData, email: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Phone"
+                  fullWidth
+                  value={supplierFormData.phone}
+                  onChange={(e) => setSupplierFormData({ ...supplierFormData, phone: e.target.value })}
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setSupplierDialogOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" variant="contained">
-              Record Reception
+              Create Supplier
             </Button>
           </DialogActions>
         </form>

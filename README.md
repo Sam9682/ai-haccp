@@ -64,9 +64,9 @@ docker-compose up -d
 ```
 
 2. **Access the application**:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
+- Frontend: http://188.165.71.139:3000
+- Backend API: http://188.165.71.139:8000
+- API Documentation: http://188.165.71.139:8000/docs
 
 3. **Default Login**:
 - Email: admin@lebouzou.com
@@ -205,8 +205,8 @@ This project is licensed under the MIT License.
 
 ### 🌐 Web Help
 - **Built-in Help**: Navigate to "Help & Guide" in the web interface
-- **API Documentation**: http://localhost:8000/docs
-- **Interactive Help**: http://localhost:3000/help
+- **API Documentation**: http://188.165.71.139:8000/docs
+- **Interactive Help**: http://188.165.71.139:3000/help
 
 ### 📞 Support
 - **Email**: support@ai-haccp.com

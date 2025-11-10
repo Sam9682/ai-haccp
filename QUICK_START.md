@@ -9,7 +9,7 @@ docker-compose up -d
 ```
 
 ### 2. Access the Web Interface
-- **URL**: http://localhost:3000
+- **URL**: http://188.165.71.139:3000
 - **Email**: admin@lebouzou.com
 - **Password**: password
 
@@ -74,12 +74,12 @@ pip install -r cli_requirements.txt
 ### API Integration
 ```bash
 # Get auth token
-TOKEN=$(curl -s -X POST "http://localhost:8000/auth/login" \
+TOKEN=$(curl -s -X POST "http://188.165.71.139:8000/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@lebouzou.com","password":"password"}' | jq -r '.access_token')
 
 # Log temperature via API
-curl -X POST "http://localhost:8000/temperature-logs" \
+curl -X POST "http://188.165.71.139:8000/temperature-logs" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"location": "Walk-in Cooler", "temperature": 2.5}'
@@ -119,7 +119,7 @@ Your usage costs are tracked in real-time:
 
 1. **Built-in Help**: Click "Help & Guide" in the sidebar
 2. **AI Assistant**: Ask "help" or "what can you do?"
-3. **API Docs**: Visit http://localhost:8000/docs
+3. **API Docs**: Visit http://188.165.71.139:8000/docs
 4. **Support**: support@ai-haccp.com
 
 ## 🎉 You're Ready!

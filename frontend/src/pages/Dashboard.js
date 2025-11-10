@@ -14,9 +14,12 @@ import {
   TrendingUp
 } from '@mui/icons-material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations/translations';
 import api from '../services/api';
 
 export default function Dashboard() {
+  const { language } = useLanguage();
   const [stats, setStats] = useState({
     temperatureLogs: 0,
     products: 0,
@@ -89,19 +92,19 @@ export default function Dashboard() {
   );
 
   if (loading) {
-    return <Typography>Loading dashboard...</Typography>;
+    return <Typography>{t('loadingDashboard', language)}</Typography>;
   }
 
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Dashboard
+        {t('dashboard', language)}
       </Typography>
       
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Temperature Logs"
+            title={t('temperatureLogsCount', language)}
             value={stats.temperatureLogs}
             icon={<Thermostat fontSize="large" />}
             color="primary"
@@ -109,7 +112,7 @@ export default function Dashboard() {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Products"
+            title={t('productsCount', language)}
             value={stats.products}
             icon={<Inventory fontSize="large" />}
             color="success"
@@ -117,7 +120,7 @@ export default function Dashboard() {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Open Incidents"
+            title={t('openIncidents', language)}
             value={stats.incidents}
             icon={<Warning fontSize="large" />}
             color="warning"
@@ -125,7 +128,7 @@ export default function Dashboard() {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Monthly Cost"
+            title={t('monthlyCost', language)}
             value={`$${stats.monthlyCost.toFixed(4)}`}
             icon={<TrendingUp fontSize="large" />}
             color="info"
@@ -136,7 +139,7 @@ export default function Dashboard() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Recent Temperature Readings
+                {t('recentTemperatureReadings', language)}
               </Typography>
               {temperatureData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
@@ -149,7 +152,7 @@ export default function Dashboard() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <Alert severity="info">No temperature data available</Alert>
+                <Alert severity="info">{t('noTemperatureData', language)}</Alert>
               )}
             </CardContent>
           </Card>

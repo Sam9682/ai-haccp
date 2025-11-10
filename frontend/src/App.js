@@ -13,6 +13,7 @@ import Help from './pages/Help';
 import MaterialReception from './pages/MaterialReception';
 import Layout from './components/Layout';
 import { AuthProvider, useAuth } from './services/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 const theme = createTheme({
   palette: {
@@ -39,8 +40,9 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <Router>
+      <LanguageProvider>
+        <AuthProvider>
+          <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={
@@ -100,8 +102,9 @@ function App() {
               </ProtectedRoute>
             } />
           </Routes>
-        </Router>
-      </AuthProvider>
+          </Router>
+        </AuthProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

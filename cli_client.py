@@ -12,7 +12,7 @@ from datetime import datetime
 from tabulate import tabulate
 
 class HACCPClient:
-    def __init__(self, base_url="http://localhost:8000", token=None):
+    def __init__(self, base_url="http://188.165.71.139:9001", token=None):
         self.base_url = base_url
         self.token = token
         self.headers = {"Content-Type": "application/json"}

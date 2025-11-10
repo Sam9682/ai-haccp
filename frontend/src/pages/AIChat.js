@@ -12,14 +12,17 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Send as SendIcon, SmartToy as AIIcon, Person as PersonIcon } from '@mui/icons-material';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations/translations';
 import api from '../services/api';
 
 export default function AIChat() {
+  const { language } = useLanguage();
   const [messages, setMessages] = useState([
     {
       id: 1,
       type: 'ai',
-      content: 'Hello! I\'m your AI assistant for HACCP management. I can help you with:\n\n• Log temperature readings\n• Add products and suppliers\n• Report incidents\n• Check compliance status\n• Mark rooms as cleaned\n• Get usage reports\n\nWhat would you like to do?',
+      content: t('aiWelcome', language),
       timestamp: new Date()
     }
   ]);
@@ -37,9 +40,11 @@ export default function AIChat() {
 
   const processAICommand = async (userInput) => {
     const input = userInput.toLowerCase();
+    const isFrench = language === 'fr';
     
-    // Temperature logging
-    if (input.includes('temperature') && (input.includes('log') || input.includes('record'))) {
+    // Temperature logging (support both languages)
+    const tempKeywords = isFrench ? ['température', 'enregistrer', 'noter'] : ['temperature', 'log', 'record'];
+    if (tempKeywords.some(keyword => input.includes(keyword))) {
       const tempMatch = input.match(/(-?\d+\.?\d*)\s*(?:degrees?|°|celsius|c)/i);
       const locationMatch = input.match(/(?:in|at|for)\s+([^,.\n]+?)(?:\s+(?:is|was|temperature)|\s*$)/i);
       
@@ -51,8 +56,10 @@ export default function AIChat() {
             is_within_limits: parseFloat(tempMatch[1]) >= -18 && parseFloat(tempMatch[1]) <= 4
           });
           
-          const status = result.is_within_limits ? '✅ Normal' : '⚠️ Alert';
-          return `Temperature logged successfully:\n• Location: ${result.location}\n• Temperature: ${result.temperature}°C\n• Status: ${status}`;
+          const status = result.is_within_limits ? `✅ ${t('normal', language)}` : `⚠️ ${t('alert', language)}`;
+          return isFrench ? 
+            `Température enregistrée avec succès:\n• Emplacement: ${result.location}\n• Température: ${result.temperature}°C\n• Statut: ${status}` :
+            `Temperature logged successfully:\n• Location: ${result.location}\n• Temperature: ${result.temperature}°C\n• Status: ${status}`;
         } catch (error) {
           return '❌ Failed to log temperature. Please check your input.';
         }
@@ -209,7 +216,7 @@ export default function AIChat() {
   return (
     <Box sx={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h4" gutterBottom>
-        AI Assistant
+        {t('aiAssistant', language)}
       </Typography>
       
       <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -223,7 +230,7 @@ export default function AIChat() {
                 <Box sx={{ flex: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <Chip 
-                      label={message.type === 'ai' ? 'AI Assistant' : 'You'} 
+                      label={message.type === 'ai' ? t('aiAssistant', language) : t('you', language)} 
                       size="small" 
                       color={message.type === 'ai' ? 'primary' : 'default'}
                     />
@@ -263,7 +270,7 @@ export default function AIChat() {
               fullWidth
               multiline
               maxRows={3}
-              placeholder="Ask me anything about HACCP... (e.g., 'Log temperature of 3 degrees in walk-in cooler')"
+              placeholder={t('typeMessage', language)}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}

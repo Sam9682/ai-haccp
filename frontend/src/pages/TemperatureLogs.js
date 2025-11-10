@@ -19,9 +19,12 @@ import {
   Alert
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations/translations';
 import api from '../services/api';
 
 export default function TemperatureLogs() {
+  const { language } = useLanguage();
   const [logs, setLogs] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -87,7 +90,7 @@ export default function TemperatureLogs() {
   const getStatusChip = (isWithinLimits) => {
     return (
       <Chip
-        label={isWithinLimits ? 'Normal' : 'Alert'}
+        label={isWithinLimits ? t('normal', language) : t('alert', language)}
         color={isWithinLimits ? 'success' : 'error'}
         size="small"
       />
@@ -95,35 +98,35 @@ export default function TemperatureLogs() {
   };
 
   if (loading) {
-    return <Typography>Loading temperature logs...</Typography>;
+    return <Typography>{t('loading', language)}</Typography>;
   }
 
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Temperature Monitoring</Typography>
+        <Typography variant="h4">{t('temperatureLogs', language)}</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleAddClick}
         >
-          Add Temperature Log
+          {t('addTemperatureLog', language)}
         </Button>
       </Box>
 
       <Alert severity="info" sx={{ mb: 3 }}>
-        Safe temperature range: -18°C to 4°C for refrigerated items
+        {language === 'fr' ? 'Plage de température sûre: -18°C à 4°C pour les articles réfrigérés' : 'Safe temperature range: -18°C to 4°C for refrigerated items'}
       </Alert>
 
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Location</TableCell>
-              <TableCell>Temperature (°C)</TableCell>
+              <TableCell>{t('location', language)}</TableCell>
+              <TableCell>{t('temperature', language)} (°C)</TableCell>
               <TableCell>Equipment ID</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Date/Time</TableCell>
+              <TableCell>{t('status', language)}</TableCell>
+              <TableCell>{language === 'fr' ? 'Date/Heure' : 'Date/Time'}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -153,12 +156,12 @@ export default function TemperatureLogs() {
         }}
       >
         <form onSubmit={handleSubmit}>
-          <DialogTitle>Add Temperature Log</DialogTitle>
+          <DialogTitle>{t('addTemperatureLog', language)}</DialogTitle>
           <DialogContent>
             <TextField
               autoFocus
               margin="dense"
-              label="Location"
+              label={t('location', language)}
               fullWidth
               variant="outlined"
               value={formData.location}
@@ -168,7 +171,7 @@ export default function TemperatureLogs() {
             />
             <TextField
               margin="dense"
-              label="Temperature (°C)"
+              label={`${t('temperature', language)} (°C)`}
               type="number"
               fullWidth
               variant="outlined"
@@ -187,8 +190,8 @@ export default function TemperatureLogs() {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">Add Log</Button>
+            <Button onClick={() => setOpen(false)}>{t('cancel', language)}</Button>
+            <Button type="submit" variant="contained">{t('add', language)}</Button>
           </DialogActions>
         </form>
       </Dialog>

@@ -28,25 +28,31 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../services/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations/translations';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const drawerWidth = 240;
 
-const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-  { text: 'Temperature Logs', icon: <ThermostatIcon />, path: '/temperature-logs' },
-  { text: 'Products', icon: <InventoryIcon />, path: '/products' },
-  { text: 'Material Reception', icon: <ReceptionIcon />, path: '/material-reception' },
-  { text: 'Cleaning Plan', icon: <CleaningIcon />, path: '/cleaning-plan' },
-  { text: 'AI Assistant', icon: <AIIcon />, path: '/ai-chat' },
-  { text: 'Usage Report', icon: <AssessmentIcon />, path: '/usage-report' },
-  { text: 'Help & Guide', icon: <HelpIcon />, path: '/help' },
-];
+
 
 export default function Layout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
+  const { language } = useLanguage();
+
+  const menuItems = [
+    { text: t('dashboard', language), icon: <DashboardIcon />, path: '/' },
+    { text: t('temperatureLogs', language), icon: <ThermostatIcon />, path: '/temperature-logs' },
+    { text: t('products', language), icon: <InventoryIcon />, path: '/products' },
+    { text: t('materialReception', language), icon: <ReceptionIcon />, path: '/material-reception' },
+    { text: t('cleaningPlan', language), icon: <CleaningIcon />, path: '/cleaning-plan' },
+    { text: t('aiChat', language), icon: <AIIcon />, path: '/ai-chat' },
+    { text: t('usageReport', language), icon: <AssessmentIcon />, path: '/usage-report' },
+    { text: t('help', language), icon: <HelpIcon />, path: '/help' },
+  ];
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -108,8 +114,9 @@ export default function Layout({ children }) {
           <Typography variant="body2" sx={{ mr: 2 }}>
             {user?.name}
           </Typography>
+          <LanguageSwitcher />
           <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>
-            Logout
+            {t('logout', language)}
           </Button>
         </Toolbar>
       </AppBar>

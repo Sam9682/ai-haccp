@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:9001';
+const g_WebSiteAddr = '188.165.71.139';
+const API_URL = process.env.REACT_APP_API_URL || `http://${g_WebSiteAddr}:9001`;
 
 const api = axios.create({
   baseURL: API_URL,
