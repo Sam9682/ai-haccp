@@ -20,6 +20,12 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  console.log('Products component rendered, open:', open);
+  
+  useEffect(() => {
+    console.log('Products dialog open state changed:', open);
+  }, [open]);
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -44,8 +50,15 @@ export default function Products() {
     }
   };
 
+  const handleAddClick = () => {
+    console.log('Add Product button clicked, current open state:', open);
+    setOpen(true);
+    console.log('Set open to true');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Product form submitted with data:', formData);
     try {
       const productData = {
         ...formData,
@@ -55,7 +68,10 @@ export default function Products() {
         storage_temp_max: formData.storage_temp_max ? parseFloat(formData.storage_temp_max) : null
       };
       
-      await api.post('/products', productData);
+      console.log('Sending product payload:', productData);
+      const response = await api.post('/products', productData);
+      console.log('Product response:', response.data);
+      
       setOpen(false);
       setFormData({
         name: '',
@@ -68,6 +84,7 @@ export default function Products() {
       fetchProducts();
     } catch (error) {
       console.error('Error creating product:', error);
+      alert('Error creating product: ' + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -82,7 +99,7 @@ export default function Products() {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => setOpen(true)}
+          onClick={handleAddClick}
         >
           Add Product
         </Button>

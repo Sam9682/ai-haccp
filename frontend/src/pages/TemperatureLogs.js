@@ -25,6 +25,12 @@ export default function TemperatureLogs() {
   const [logs, setLogs] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  console.log('TemperatureLogs component rendered, open:', open);
+  
+  useEffect(() => {
+    console.log('Dialog open state changed:', open);
+  }, [open]);
   const [formData, setFormData] = useState({
     location: '',
     temperature: '',
@@ -47,19 +53,34 @@ export default function TemperatureLogs() {
     }
   };
 
+  const handleAddClick = () => {
+    console.log('Add button clicked, current open state:', open);
+    setOpen(true);
+    console.log('Set open to true');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted with data:', formData);
     try {
-      await api.post('/temperature-logs', {
-        ...formData,
-        temperature: parseFloat(formData.temperature),
-        is_within_limits: formData.temperature >= -18 && formData.temperature <= 4
-      });
+      const temp = parseFloat(formData.temperature);
+      const payload = {
+        location: formData.location,
+        temperature: temp,
+        equipment_id: formData.equipment_id || null,
+        is_within_limits: temp >= -18 && temp <= 4
+      };
+      console.log('Sending payload:', payload);
+      
+      const response = await api.post('/temperature-logs', payload);
+      console.log('Response:', response.data);
+      
       setOpen(false);
       setFormData({ location: '', temperature: '', equipment_id: '', is_within_limits: true });
       fetchLogs();
     } catch (error) {
       console.error('Error creating temperature log:', error);
+      alert('Error creating temperature log: ' + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -84,7 +105,7 @@ export default function TemperatureLogs() {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => setOpen(true)}
+          onClick={handleAddClick}
         >
           Add Temperature Log
         </Button>
@@ -119,7 +140,18 @@ export default function TemperatureLogs() {
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog 
+        open={open} 
+        onClose={() => setOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          style: {
+            backgroundColor: 'white',
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)'
+          }
+        }}
+      >
         <form onSubmit={handleSubmit}>
           <DialogTitle>Add Temperature Log</DialogTitle>
           <DialogContent>

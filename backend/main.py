@@ -62,9 +62,10 @@ def log_usage(db: Session, user_id: int, org_id: int, action: str, cost: float):
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        user_id_str = payload.get("sub")
+        if user_id_str is None:
             raise HTTPException(status_code=401, detail="Invalid token")
+        user_id = int(user_id_str)
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
     
@@ -77,7 +78,33 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == credentials.email).first()
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        # Create demo user if it doesn't exist
+        if credentials.email == "admin@lebouzou.com" and credentials.password == "password":
+            from models import Organization
+            import hashlib
+            
+            # Create demo organization if it doesn't exist
+            org = db.query(Organization).filter(Organization.name == "Demo Restaurant").first()
+            if not org:
+                org = Organization(name="Demo Restaurant", type="restaurant")
+                db.add(org)
+                db.commit()
+                db.refresh(org)
+            
+            # Create demo user with simple hash
+            simple_hash = hashlib.sha256(credentials.password.encode()).hexdigest()
+            user = User(
+                email=credentials.email,
+                password_hash=simple_hash,
+                name="Demo Admin",
+                role="admin",
+                organization_id=org.id
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        else:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Handle both bcrypt and simple hash (for demo user)
     password_valid = False
@@ -94,7 +121,7 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     access_token = jwt.encode(
-        {"sub": user.id, "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)},
+        {"sub": str(user.id), "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)},
         SECRET_KEY, algorithm=ALGORITHM
     )
     
