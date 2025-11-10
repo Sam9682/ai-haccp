@@ -1,0 +1,13 @@
+pricing:
+  login: 0.001
+  temperature_log: 0.001
+  temperature_log_update: 0.001
+  product_create: 0.001
+  product_update: 0.001
+  supplier_create: 0.001
+  data_query: 0.001
+  cleaning_plan_create: 0.001
+  incident_create: 0.001
+  audit_create: 0.001
+  batch_create: 0.001
+  batch_update: 0.001

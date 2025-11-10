@@ -9,7 +9,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from database import get_db, engine, init_database
-from models import User, Organization, UsageLog, TemperatureLog, Product, Supplier, CleaningPlan, RoomCleaning, MaterialReception
+from models import User, Organization, UsageLog, TemperatureLog, Product, Supplier, CleaningPlan, RoomCleaning, MaterialReception, Configuration
 from schemas import *
 
 app = FastAPI(title="AI-HACCP Platform", version="1.0.0")
@@ -48,16 +48,7 @@ SECRET_KEY = os.getenv("JWT_SECRET", "your-secret-key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-def log_usage(db: Session, user_id: int, org_id: int, action: str, cost: float):
-    """Log usage for cost tracking"""
-    usage = UsageLog(
-        user_id=user_id,
-        organization_id=org_id,
-        action_type=action,
-        resource_used=cost
-    )
-    db.add(usage)
-    db.commit()
+from pricing_utils import log_usage
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
     try:
@@ -125,7 +116,7 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
         SECRET_KEY, algorithm=ALGORITHM
     )
     
-    log_usage(db, user.id, user.organization_id, "login", 0.001)
+    log_usage(db, user.id, user.organization_id, "login")
     return {"access_token": access_token, "token_type": "bearer", "user": user}
 
 @app.post("/organizations", response_model=OrganizationResponse)
@@ -166,7 +157,7 @@ async def create_temperature_log(
     db.commit()
     db.refresh(db_log)
     
-    log_usage(db, current_user.id, current_user.organization_id, "temperature_log", 0.002)
+    log_usage(db, current_user.id, current_user.organization_id, "temperature_log")
     return db_log
 
 @app.get("/temperature-logs", response_model=List[TemperatureLogResponse])
@@ -178,7 +169,7 @@ async def get_temperature_logs(
         TemperatureLog.organization_id == current_user.organization_id
     ).order_by(TemperatureLog.created_at.desc()).limit(100).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
     return logs
 
 @app.put("/temperature-logs/{log_id}", response_model=TemperatureLogResponse)
@@ -202,7 +193,7 @@ async def update_temperature_log(
     db.commit()
     db.refresh(db_log)
     
-    log_usage(db, current_user.id, current_user.organization_id, "temperature_log_update", 0.003)
+    log_usage(db, current_user.id, current_user.organization_id, "temperature_log_update")
     return db_log
 
 @app.post("/products", response_model=ProductResponse)
@@ -219,7 +210,7 @@ async def create_product(
     db.commit()
     db.refresh(db_product)
     
-    log_usage(db, current_user.id, current_user.organization_id, "product_create", 0.005)
+    log_usage(db, current_user.id, current_user.organization_id, "product_create")
     return db_product
 
 @app.get("/products", response_model=List[ProductResponse])
@@ -231,7 +222,7 @@ async def get_products(
         Product.organization_id == current_user.organization_id
     ).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
     return products
 
 @app.patch("/products/{product_id}", response_model=ProductResponse)
@@ -255,7 +246,7 @@ async def update_product(
     db.commit()
     db.refresh(db_product)
     
-    log_usage(db, current_user.id, current_user.organization_id, "product_update", 0.005)
+    log_usage(db, current_user.id, current_user.organization_id, "product_update")
     return db_product
 
 @app.post("/suppliers", response_model=SupplierResponse)
@@ -272,7 +263,7 @@ async def create_supplier(
     db.commit()
     db.refresh(db_supplier)
     
-    log_usage(db, current_user.id, current_user.organization_id, "supplier_create", 0.005)
+    log_usage(db, current_user.id, current_user.organization_id, "supplier_create")
     return db_supplier
 
 @app.get("/suppliers", response_model=List[SupplierResponse])
@@ -284,7 +275,7 @@ async def get_suppliers(
         Supplier.organization_id == current_user.organization_id
     ).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
     return suppliers
 
 @app.get("/usage-report")
@@ -335,7 +326,7 @@ async def create_cleaning_plan(
     db.commit()
     db.refresh(db_plan)
     
-    log_usage(db, current_user.id, current_user.organization_id, "cleaning_plan_create", 0.003)
+    log_usage(db, current_user.id, current_user.organization_id, "cleaning_plan_create")
     return db_plan
 
 @app.get("/cleaning-plans", response_model=List[CleaningPlanResponse])
@@ -347,7 +338,7 @@ async def get_cleaning_plans(
         CleaningPlan.organization_id == current_user.organization_id
     ).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
     return plans
 
 @app.post("/room-cleaning", response_model=RoomCleaningResponse)
@@ -365,7 +356,7 @@ async def mark_room_cleaned(
     db.commit()
     db.refresh(db_cleaning)
     
-    log_usage(db, current_user.id, current_user.organization_id, "room_cleaning", 0.002)
+    log_usage(db, current_user.id, current_user.organization_id, "room_cleaning")
     return db_cleaning
 
 @app.get("/room-cleanings/{plan_id}", response_model=List[RoomCleaningResponse])
@@ -379,7 +370,7 @@ async def get_room_cleanings(
         RoomCleaning.cleaning_plan_id == plan_id
     ).order_by(RoomCleaning.cleaned_at.desc()).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
     return cleanings
 
 @app.get("/help")
@@ -478,7 +469,7 @@ async def create_material_reception(
     db.commit()
     db.refresh(db_reception)
     
-    log_usage(db, current_user.id, current_user.organization_id, "material_reception", 0.008)
+    log_usage(db, current_user.id, current_user.organization_id, "material_reception")
     return db_reception
 
 @app.get("/material-receptions", response_model=List[MaterialReceptionResponse])
@@ -490,7 +481,7 @@ async def get_material_receptions(
         MaterialReception.organization_id == current_user.organization_id
     ).order_by(MaterialReception.received_at.desc()).limit(100).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
     return receptions
 
 @app.patch("/material-receptions/{reception_id}", response_model=MaterialReceptionResponse)
@@ -515,7 +506,7 @@ async def update_material_reception(
     db.commit()
     db.refresh(db_reception)
     
-    log_usage(db, current_user.id, current_user.organization_id, "material_reception_update", 0.005)
+    log_usage(db, current_user.id, current_user.organization_id, "material_reception_update")
     return db_reception
 
 @app.post("/analyze-reception-image")
@@ -528,7 +519,7 @@ async def analyze_reception_image(
     
     try:
         result = ai_vision_service.analyze_reception_image(image_data.get("image", ""))
-        log_usage(db, current_user.id, current_user.organization_id, "ai_image_analysis", 0.015)
+        log_usage(db, current_user.id, current_user.organization_id, "ai_image_analysis")
         return result
     except Exception as e:
         return {"success": False, "error": str(e)}

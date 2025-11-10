@@ -144,6 +144,16 @@ class RoomCleaning(Base):
     cleaning_plan = relationship("CleaningPlan")
     user = relationship("User")
 
+class Configuration(Base):
+    __tablename__ = "configuration"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    parameter = Column(String(255), nullable=False, unique=True)
+    value = Column(String(1000), nullable=False)
+    parent_parameter = Column(String(255))
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
 class MaterialReception(Base):
     __tablename__ = "material_receptions"
     
