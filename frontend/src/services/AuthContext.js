@@ -14,14 +14,25 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Verify token validity
-      api.get('/health').then(() => {
-        setUser({ token });
-      }).catch(() => {
+      // Check if token is expired
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = Date.now() / 1000;
+        
+        if (payload.exp > currentTime) {
+          // Token is still valid
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          setUser({ token });
+        } else {
+          // Token is expired, remove it
+          localStorage.removeItem('token');
+          delete api.defaults.headers.common['Authorization'];
+        }
+      } catch (error) {
+        // Invalid token format, remove it
         localStorage.removeItem('token');
         delete api.defaults.headers.common['Authorization'];
-      });
+      }
     }
     setLoading(false);
   }, []);

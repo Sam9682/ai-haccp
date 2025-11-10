@@ -27,7 +27,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
+    // Only fetch data if we have a token
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchDashboardData();
+    }
   }, []);
 
   const fetchDashboardData = async () => {
@@ -55,6 +59,10 @@ export default function Dashboard() {
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Don't redirect on API errors, let the interceptor handle it
+      if (error.response?.status !== 401) {
+        // Handle non-auth errors gracefully
+      }
     } finally {
       setLoading(false);
     }

@@ -26,7 +26,12 @@ const theme = createTheme({
 });
 
 function ProtectedRoute({ children }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
   return user ? children : <Navigate to="/login" />;
 }
 
