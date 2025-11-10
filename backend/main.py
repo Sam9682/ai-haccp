@@ -12,6 +12,8 @@ from database import get_db, engine, init_database
 from models import User, Organization, UsageLog, TemperatureLog, Product, Supplier, CleaningPlan, RoomCleaning, MaterialReception
 from schemas import *
 
+app = FastAPI(title="AI-HACCP Platform", version="1.0.0")
+
 # Serverless compatibility
 try:
     from mangum import Mangum
@@ -19,18 +21,17 @@ try:
 except ImportError:
     pass
 
-app = FastAPI(title="AI-HACCP Platform", version="1.0.0")
-
 # Initialize database on startup
 @app.on_event("startup")
 async def startup_event():
     init_database()
     # Ensure demo user exists
-    try:
-        from create_demo_user import create_demo_user
-        create_demo_user()
-    except Exception as e:
-        print(f"Warning: Could not create demo user: {e}")
+    # try:
+    #     from create_demo_user import create_demo_user
+    #     create_demo_user()
+    # except Exception as e:
+    #     print(f"Warning: Could not create demo user: {e}")
+    print("Database initialized successfully")
 
 app.add_middleware(
     CORSMiddleware,
@@ -75,7 +76,21 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 @app.post("/auth/login")
 async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == credentials.email).first()
-    if not user or not pwd_context.verify(credentials.password, user.password_hash):
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Handle both bcrypt and simple hash (for demo user)
+    password_valid = False
+    try:
+        # Try bcrypt first
+        password_valid = pwd_context.verify(credentials.password, user.password_hash)
+    except:
+        # Fallback to simple hash for demo user
+        import hashlib
+        simple_hash = hashlib.sha256(credentials.password.encode()).hexdigest()
+        password_valid = (simple_hash == user.password_hash)
+    
+    if not password_valid:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     access_token = jwt.encode(

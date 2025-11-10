@@ -28,16 +28,16 @@ services:
       - /app/node_modules
     restart: unless-stopped
 
-  mcp-server:
-    build: ./backend
-    command: python mcp_server.py
-    environment:
-      DATABASE_URL: sqlite:///./ai_haccp.db
-      PYTHONPATH: /app
-    volumes:
-      - ./backend:/app
-      - ./data:/app/data
-    restart: unless-stopped
+  # mcp-server:
+  #   build: ./backend
+  #   command: python mcp_server.py
+  #   environment:
+  #     DATABASE_URL: sqlite:///./ai_haccp.db
+  #     PYTHONPATH: /app
+  #   volumes:
+  #     - ./backend:/app
+  #     - ./data:/app/data
+  #   restart: unless-stopped
 
 volumes:
   uploads:

@@ -3,11 +3,13 @@ uvicorn
 gunicorn
 sqlalchemy
 alembic
-pydantic
+pydantic[email]
 python-jose[cryptography]
 passlib[bcrypt]
 python-multipart
 mangum
 Pillow
 opencv-python
-mcp
+mcp==1.0.0
+asyncio-mqtt==0.16.1
+psycopg2-binary==2.9.9

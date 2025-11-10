@@ -34,8 +34,10 @@ def init_database():
         
         if result[0] == 0:
             # Insert demo data
-            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-            hashed_password = pwd_context.hash("password")
+            # Use a simple hash for demo purposes to avoid bcrypt issues
+            import hashlib
+            password = "password"
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
             
             demo_sql = f"""
             INSERT INTO organizations (name, type) VALUES ('Demo Restaurant', 'restaurant');

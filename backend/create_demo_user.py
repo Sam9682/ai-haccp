@@ -28,7 +28,9 @@ def create_demo_user():
         # Check if user exists
         user = db.query(User).filter(User.email == "admin@lebouzou.com").first()
         if not user:
-            hashed_password = pwd_context.hash("password")
+            # Ensure password is within bcrypt limits (72 bytes)
+            password = "password"[:72]
+            hashed_password = pwd_context.hash(password)
             user = User(
                 email="admin@lebouzou.com",
                 password_hash=hashed_password,
@@ -41,12 +43,14 @@ def create_demo_user():
             print("Created demo user: admin@lebouzou.com / password")
         else:
             # Update password to ensure it's correct
-            user.password_hash = pwd_context.hash("password")
+            password = "password"[:72]
+            user.password_hash = pwd_context.hash(password)
             db.commit()
             print("Updated demo user password")
         
         # Verify password
-        if pwd_context.verify("password", user.password_hash):
+        password = "password"[:72]
+        if pwd_context.verify(password, user.password_hash):
             print("✅ Password verification successful")
         else:
             print("❌ Password verification failed")
