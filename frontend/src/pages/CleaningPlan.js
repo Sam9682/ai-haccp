@@ -18,7 +18,7 @@ import {
   Chip,
   Alert
 } from '@mui/material';
-import { Add as AddIcon, CleaningServices as CleanIcon } from '@mui/icons-material';
+import { Add as AddIcon, CleaningServices as CleanIcon, Archive as ArchiveIcon, History as HistoryIcon } from '@mui/icons-material';
 import api from '../services/api';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations/translations';
@@ -26,8 +26,10 @@ import { t } from '../translations/translations';
 export default function CleaningPlan() {
   const { language } = useLanguage();
   const [plans, setPlans] = useState([]);
+  const [archivedPlans, setArchivedPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [open, setOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const [roomCleanings, setRoomCleanings] = useState([]);
   const canvasRef = useRef(null);
   const dialogCanvasRef = useRef(null);
@@ -43,6 +45,7 @@ export default function CleaningPlan() {
 
   useEffect(() => {
     fetchPlans();
+    fetchArchivedPlans();
   }, []);
 
   useEffect(() => {
@@ -51,6 +54,12 @@ export default function CleaningPlan() {
       drawPlan(selectedPlan);
     }
   }, [selectedPlan]);
+
+  useEffect(() => {
+    if (selectedPlan) {
+      drawPlan(selectedPlan);
+    }
+  }, [roomCleanings]);
 
   useEffect(() => {
     if (open) {
@@ -67,6 +76,35 @@ export default function CleaningPlan() {
       }
     } catch (error) {
       console.error('Error fetching cleaning plans:', error);
+    }
+  };
+
+  const fetchArchivedPlans = async () => {
+    try {
+      const response = await api.get('/cleaning-plans/archived');
+      setArchivedPlans(response.data);
+    } catch (error) {
+      console.error('Error fetching archived plans:', error);
+    }
+  };
+
+  const checkAndArchivePlans = async () => {
+    try {
+      await api.post('/cleaning-plans/check-archive');
+      fetchPlans();
+      fetchArchivedPlans();
+    } catch (error) {
+      console.error('Error checking/archiving plans:', error);
+    }
+  };
+
+  const archivePlan = async (planId) => {
+    try {
+      await api.post(`/cleaning-plans/${planId}/archive`);
+      fetchPlans();
+      fetchArchivedPlans();
+    } catch (error) {
+      console.error('Error archiving plan:', error);
     }
   };
 
@@ -266,22 +304,52 @@ export default function CleaningPlan() {
     const cleanedAt = new Date(lastCleaning.cleaned_at);
     const hoursAgo = (Date.now() - cleanedAt.getTime()) / (1000 * 60 * 60);
     
-    if (hoursAgo < 24) return { status: t('recentlyCleaned', language), color: 'success' };
-    if (hoursAgo < 48) return { status: t('needsAttention', language), color: 'warning' };
-    return { status: t('overdue', language), color: 'error' };
+    const dateTime = cleanedAt.toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    const prefix = language === 'fr' ? 'Nettoyé' : 'Cleaned';
+    
+    let color = 'success';
+    if (hoursAgo >= 48) color = 'error';
+    else if (hoursAgo >= 24) color = 'warning';
+    
+    return { status: `${prefix} ${dateTime}`, color };
   };
 
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">{t('cleaningManagement', language)}</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpen(true)}
-        >
-          {t('createPlan', language)}
-        </Button>
+        <Box>
+          <Button
+            variant="outlined"
+            startIcon={<HistoryIcon />}
+            onClick={() => setArchiveOpen(true)}
+            sx={{ mr: 1 }}
+          >
+            {t('viewArchive', language)}
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<ArchiveIcon />}
+            onClick={checkAndArchivePlans}
+            sx={{ mr: 1 }}
+          >
+            {t('checkArchive', language)}
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpen(true)}
+          >
+            {t('createPlan', language)}
+          </Button>
+        </Box>
       </Box>
 
       <Grid container spacing={3}>
@@ -308,9 +376,6 @@ export default function CleaningPlan() {
                   maxWidth: '600px'
                 }}
                 onClick={handleCanvasClick}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
               />
             </CardContent>
           </Card>
@@ -342,15 +407,22 @@ export default function CleaningPlan() {
               </Typography>
               
               {plans.map((plan) => (
-                <Button
-                  key={plan.id}
-                  variant={selectedPlan?.id === plan.id ? "contained" : "outlined"}
-                  fullWidth
-                  sx={{ mb: 1 }}
-                  onClick={() => setSelectedPlan(plan)}
-                >
-                  {plan.name}
-                </Button>
+                <Box key={plan.id} display="flex" alignItems="center" mb={1}>
+                  <Button
+                    variant={selectedPlan?.id === plan.id ? "contained" : "outlined"}
+                    fullWidth
+                    onClick={() => setSelectedPlan(plan)}
+                  >
+                    {plan.name}
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => archivePlan(plan.id)}
+                    sx={{ ml: 1, minWidth: 'auto' }}
+                  >
+                    <ArchiveIcon fontSize="small" />
+                  </Button>
+                </Box>
               ))}
             </CardContent>
           </Card>
@@ -431,6 +503,33 @@ export default function CleaningPlan() {
             <Button type="submit" variant="contained">{t('createPlan', language)}</Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      <Dialog open={archiveOpen} onClose={() => setArchiveOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>{t('archivedPlans', language)}</DialogTitle>
+        <DialogContent>
+          {archivedPlans.length === 0 ? (
+            <Typography>{t('noArchivedPlans', language)}</Typography>
+          ) : (
+            archivedPlans.map((plan) => (
+              <Card key={plan.id} sx={{ mb: 2 }}>
+                <CardContent>
+                  <Typography variant="h6">{plan.name}</Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {t('frequency', language)}: {t(plan.cleaning_frequency, language)}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {t('archivedAt', language)}: {new Date(plan.archived_at).toLocaleDateString()}
+                  </Typography>
+                  <Typography variant="body2">{plan.description}</Typography>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setArchiveOpen(false)}>{t('close', language)}</Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

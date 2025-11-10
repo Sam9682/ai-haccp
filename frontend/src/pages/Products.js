@@ -13,7 +13,7 @@ import {
   CardContent,
   Chip
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon } from '@mui/icons-material';
 import api from '../services/api';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations/translations';
@@ -23,6 +23,7 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [editingProduct, setEditingProduct] = useState(null);
   
   console.log('Products component rendered, open:', open);
   
@@ -55,8 +56,30 @@ export default function Products() {
 
   const handleAddClick = () => {
     console.log('Add Product button clicked, current open state:', open);
+    setEditingProduct(null);
+    setFormData({
+      name: '',
+      category: '',
+      allergens: '',
+      shelf_life_days: '',
+      storage_temp_min: '',
+      storage_temp_max: ''
+    });
     setOpen(true);
     console.log('Set open to true');
+  };
+
+  const handleEditClick = (product) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      category: product.category || '',
+      allergens: product.allergens ? product.allergens.join(', ') : '',
+      shelf_life_days: product.shelf_life_days || '',
+      storage_temp_min: product.storage_temp_min || '',
+      storage_temp_max: product.storage_temp_max || ''
+    });
+    setOpen(true);
   };
 
   const handleSubmit = async (e) => {
@@ -72,10 +95,13 @@ export default function Products() {
       };
       
       console.log('Sending product payload:', productData);
-      const response = await api.post('/products', productData);
+      const response = editingProduct 
+        ? await api.patch(`/products/${editingProduct.id}`, productData)
+        : await api.post('/products', productData);
       console.log('Product response:', response.data);
       
       setOpen(false);
+      setEditingProduct(null);
       setFormData({
         name: '',
         category: '',
@@ -143,6 +169,15 @@ export default function Products() {
                     ))}
                   </Box>
                 )}
+                <Box mt={2}>
+                  <Button
+                    size="small"
+                    startIcon={<EditIcon />}
+                    onClick={() => handleEditClick(product)}
+                  >
+                    {t('edit', language)}
+                  </Button>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
@@ -151,7 +186,7 @@ export default function Products() {
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
         <form onSubmit={handleSubmit}>
-          <DialogTitle>{t('addNewProduct', language)}</DialogTitle>
+          <DialogTitle>{editingProduct ? t('editProduct', language) : t('addNewProduct', language)}</DialogTitle>
           <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
@@ -224,7 +259,7 @@ export default function Products() {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpen(false)}>{t('cancel', language)}</Button>
-            <Button type="submit" variant="contained">{t('addProduct', language)}</Button>
+            <Button type="submit" variant="contained">{editingProduct ? t('updateProduct', language) : t('addProduct', language)}</Button>
           </DialogActions>
         </form>
       </Dialog>

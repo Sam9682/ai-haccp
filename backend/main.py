@@ -181,6 +181,30 @@ async def get_temperature_logs(
     log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
     return logs
 
+@app.put("/temperature-logs/{log_id}", response_model=TemperatureLogResponse)
+async def update_temperature_log(
+    log_id: int,
+    temp_log: TemperatureLogCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_log = db.query(TemperatureLog).filter(
+        TemperatureLog.id == log_id,
+        TemperatureLog.organization_id == current_user.organization_id
+    ).first()
+    
+    if not db_log:
+        raise HTTPException(status_code=404, detail="Temperature log not found")
+    
+    for field, value in temp_log.dict().items():
+        setattr(db_log, field, value)
+    
+    db.commit()
+    db.refresh(db_log)
+    
+    log_usage(db, current_user.id, current_user.organization_id, "temperature_log_update", 0.003)
+    return db_log
+
 @app.post("/products", response_model=ProductResponse)
 async def create_product(
     product: ProductCreate,
@@ -209,6 +233,59 @@ async def get_products(
     
     log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
     return products
+
+@app.patch("/products/{product_id}", response_model=ProductResponse)
+async def update_product(
+    product_id: int,
+    product: ProductCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.organization_id == current_user.organization_id
+    ).first()
+    
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    for field, value in product.dict().items():
+        setattr(db_product, field, value)
+    
+    db.commit()
+    db.refresh(db_product)
+    
+    log_usage(db, current_user.id, current_user.organization_id, "product_update", 0.005)
+    return db_product
+
+@app.post("/suppliers", response_model=SupplierResponse)
+async def create_supplier(
+    supplier: SupplierCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_supplier = Supplier(
+        organization_id=current_user.organization_id,
+        **supplier.dict()
+    )
+    db.add(db_supplier)
+    db.commit()
+    db.refresh(db_supplier)
+    
+    log_usage(db, current_user.id, current_user.organization_id, "supplier_create", 0.005)
+    return db_supplier
+
+@app.get("/suppliers", response_model=List[SupplierResponse])
+async def get_suppliers(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    suppliers = db.query(Supplier).filter(
+        Supplier.organization_id == current_user.organization_id
+    ).all()
+    
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
+    return suppliers
 
 @app.get("/usage-report")
 async def get_usage_report(
@@ -415,6 +492,31 @@ async def get_material_receptions(
     
     log_usage(db, current_user.id, current_user.organization_id, "data_query", 0.001)
     return receptions
+
+@app.patch("/material-receptions/{reception_id}", response_model=MaterialReceptionResponse)
+async def update_material_reception(
+    reception_id: int,
+    reception: MaterialReceptionCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_reception = db.query(MaterialReception).filter(
+        MaterialReception.id == reception_id,
+        MaterialReception.organization_id == current_user.organization_id
+    ).first()
+    
+    if not db_reception:
+        raise HTTPException(status_code=404, detail="Material reception not found")
+    
+    for field, value in reception.dict(exclude_unset=True).items():
+        if field != 'image_data':  # Skip image_data for updates
+            setattr(db_reception, field, value)
+    
+    db.commit()
+    db.refresh(db_reception)
+    
+    log_usage(db, current_user.id, current_user.organization_id, "material_reception_update", 0.005)
+    return db_reception
 
 @app.post("/analyze-reception-image")
 async def analyze_reception_image(

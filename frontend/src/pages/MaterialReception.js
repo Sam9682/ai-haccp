@@ -32,7 +32,8 @@ import {
   CameraAlt as CameraIcon,
   QrCodeScanner as BarcodeIcon,
   SmartToy as AIIcon,
-  Inventory as InventoryIcon
+  Inventory as InventoryIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import api from '../services/api';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -51,6 +52,7 @@ export default function MaterialReception() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [editingReception, setEditingReception] = useState(null);
 
   const [formData, setFormData] = useState({
     supplier_id: '',
@@ -224,13 +226,18 @@ export default function MaterialReception() {
         supplier_id: parseInt(formData.supplier_id)
       };
 
-      await api.post('/material-reception', receptionData);
+      if (editingReception) {
+        await api.patch(`/material-receptions/${editingReception.id}`, receptionData);
+      } else {
+        await api.post('/material-reception', receptionData);
+      }
+      
       setOpen(false);
       resetForm();
       fetchReceptions();
     } catch (error) {
-      console.error('Error creating reception:', error);
-      alert('Failed to create reception record');
+      console.error('Error saving reception:', error);
+      alert('Failed to save reception record');
     }
   };
 
@@ -250,12 +257,23 @@ export default function MaterialReception() {
     });
     setImagePreview(null);
     setCameraActive(false);
+    setEditingReception(null);
   };
 
   const handleSupplierSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post('/suppliers', supplierFormData);
+      const supplierData = {
+        name: supplierFormData.name,
+        contact_info: {
+          contact_person: supplierFormData.contact_person,
+          email: supplierFormData.email,
+          phone: supplierFormData.phone
+        },
+        certification_status: 'pending',
+        risk_level: 1
+      };
+      const response = await api.post('/suppliers', supplierData);
       setSupplierDialogOpen(false);
       setSupplierFormData({ name: '', contact_person: '', email: '', phone: '' });
       fetchSuppliers();
@@ -272,6 +290,27 @@ export default function MaterialReception() {
       dairy: 'primary', vegetables: 'success', fruits: 'secondary'
     };
     return colors[category] || 'default';
+  };
+
+  const handleEdit = (reception) => {
+    setEditingReception(reception);
+    setFormData({
+      supplier_id: reception.supplier_id || '',
+      product_name: reception.product_name || '',
+      category: reception.category || '',
+      barcode: reception.barcode || '',
+      quantity: reception.quantity || '',
+      unit: reception.unit || 'kg',
+      expiry_date: reception.expiry_date ? reception.expiry_date.split('T')[0] : '',
+      batch_number: reception.batch_number || '',
+      temperature_on_arrival: reception.temperature_on_arrival || '',
+      quality_notes: reception.quality_notes || '',
+      image_data: reception.image_data || null
+    });
+    if (reception.image_data) {
+      setImagePreview(reception.image_data);
+    }
+    setOpen(true);
   };
 
   if (loading) {
@@ -306,6 +345,7 @@ export default function MaterialReception() {
               <TableCell>{t('temperature', language)}</TableCell>
               <TableCell>{t('received', language)}</TableCell>
               <TableCell>{t('aiAnalysis', language)}</TableCell>
+              <TableCell>{t('actions', language)}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -349,6 +389,15 @@ export default function MaterialReception() {
                     <Chip label="Manual" color="default" size="small" />
                   )}
                 </TableCell>
+                <TableCell>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleEdit(reception)}
+                    color="primary"
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -360,7 +409,7 @@ export default function MaterialReception() {
           <DialogTitle>
             <Box display="flex" alignItems="center">
               <InventoryIcon sx={{ mr: 1 }} />
-              {t('receiveMaterials', language)}
+              {editingReception ? t('editReception', language) : t('receiveMaterials', language)}
             </Box>
           </DialogTitle>
           <DialogContent>
@@ -578,7 +627,7 @@ export default function MaterialReception() {
               {t('cancel', language)}
             </Button>
             <Button type="submit" variant="contained">
-              {t('save', language)}
+              {editingReception ? t('update', language) : t('save', language)}
             </Button>
           </DialogActions>
         </form>
