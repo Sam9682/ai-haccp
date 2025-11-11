@@ -26,13 +26,13 @@ def create_demo_user():
             print("Created demo organization")
         
         # Check if user exists
-        user = db.query(User).filter(User.email == "admin@lebouzou.com").first()
+        user = db.query(User).filter(User.email == "admin@ai-automorph.com").first()
         if not user:
             # Ensure password is within bcrypt limits (72 bytes)
             password = "password"[:72]
             hashed_password = pwd_context.hash(password)
             user = User(
-                email="admin@lebouzou.com",
+                email="admin@ai-automorph.com",
                 password_hash=hashed_password,
                 name="Demo Admin",
                 role="admin",
@@ -40,7 +40,7 @@ def create_demo_user():
             )
             db.add(user)
             db.commit()
-            print("Created demo user: admin@lebouzou.com / password")
+            print("Created demo user: admin@ai-automorph.com / password")
         else:
             # Update password to ensure it's correct
             password = "password"[:72]

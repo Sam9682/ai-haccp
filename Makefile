@@ -64,4 +64,4 @@ setup: ## Initial setup with demo data
 	docker-compose up -d postgres
 	sleep 10
 	docker-compose up -d api
-	@echo "✅ Setup complete! Demo login: admin@lebouzou.com / password"
+	@echo "✅ Setup complete! Demo login: admin@ai-automorph.com / password"

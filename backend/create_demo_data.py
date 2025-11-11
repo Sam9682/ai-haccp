@@ -34,12 +34,12 @@ def create_demo_data():
             print(f"Created demo organization: {demo_org.name}")
         
         # Check if demo user already exists
-        demo_user = db.query(User).filter(User.email == "admin@lebouzou.com").first()
+        demo_user = db.query(User).filter(User.email == "admin@ai-automorph.com").first()
         if not demo_user:
             # Create demo user
             simple_hash = hashlib.sha256("password".encode()).hexdigest()
             demo_user = User(
-                email="admin@lebouzou.com",
+                email="admin@ai-automorph.com",
                 password_hash=simple_hash,
                 name="Demo Admin",
                 role="admin",

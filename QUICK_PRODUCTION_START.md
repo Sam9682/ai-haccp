@@ -53,7 +53,7 @@ docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
 
 - **🌐 Web Interface**: https://ai-haccp.swautomorph.com
 - **📚 API Docs**: https://ai-haccp.swautomorph.com/docs
-- **🔑 Demo Login**: admin@lebouzou.com / password
+- **🔑 Demo Login**: admin@ai-automorph.com / password
 
 ## Quick Commands
 

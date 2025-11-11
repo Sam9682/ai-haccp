@@ -43,7 +43,7 @@ def init_database():
             INSERT INTO organizations (name, type) VALUES ('Demo Restaurant', 'restaurant');
             
             INSERT INTO users (email, password_hash, name, role, organization_id) VALUES 
-            ('admin@lebouzou.com', '{hashed_password}', 'Demo Admin', 'admin', 1);
+            ('admin@ai-automorph.com', '{hashed_password}', 'Demo Admin', 'admin', 1);
             
             INSERT INTO products (organization_id, name, category, allergens, shelf_life_days, storage_temp_min, storage_temp_max) VALUES 
             (1, 'Fresh Chicken Breast', 'Meat', '[]', 3, 0, 4),

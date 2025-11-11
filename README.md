@@ -69,7 +69,7 @@ docker-compose up -d
 - API Documentation: http://ai-haccp.swautomorph.com:8000/docs
 
 3. **Default Login**:
-- Email: admin@lebouzou.com
+- Email: admin@ai-automorph.com
 - Password: password
 
 ### Database Setup

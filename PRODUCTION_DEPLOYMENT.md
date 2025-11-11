@@ -56,7 +56,7 @@ docker-compose -f docker-compose.prod.yml ps
 ### 4. Access Your Platform
 - **Web Interface**: https://ai-haccp.swautomorph.com
 - **API Documentation**: https://ai-haccp.swautomorph.com/docs
-- **Demo Login**: admin@lebouzou.com / password
+- **Demo Login**: admin@ai-automorph.com / password
 
 ## 🔧 Detailed Production Setup
 

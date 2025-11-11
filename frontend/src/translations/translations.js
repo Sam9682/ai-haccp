@@ -17,7 +17,7 @@ export const translations = {
     signingIn: 'Signing In...',
     emailAddress: 'Email Address',
     password: 'Password',
-    demo: 'Demo: admin@lebouzou.com / password',
+    demo: 'Demo: admin@ai-automorph.com / password',
     
     // AI Chat
     aiAssistant: 'AI Assistant',
@@ -165,7 +165,7 @@ export const translations = {
     signingIn: 'Connexion...',
     emailAddress: 'Adresse e-mail',
     password: 'Mot de passe',
-    demo: 'Démo: admin@lebouzou.com / password',
+    demo: 'Démo: admin@ai-automorph.com / password',
     
     // AI Chat
     aiAssistant: 'Assistant IA',

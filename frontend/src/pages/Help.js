@@ -245,7 +245,7 @@ export default function Help() {
                     {t[language].demoCredentials}
                   </Typography>
                   <Typography variant="body2" component="div">
-                    <strong>Email:</strong> admin@lebouzou.com<br />
+                    <strong>Email:</strong> admin@ai-automorph.com<br />
                     <strong>Password:</strong> password
                   </Typography>
                 </CardContent>

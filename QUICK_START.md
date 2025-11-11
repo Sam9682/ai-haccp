@@ -10,7 +10,7 @@ docker-compose up -d
 
 ### 2. Access the Web Interface
 - **URL**: http://ai-haccp.swautomorph.com:3000
-- **Email**: admin@lebouzou.com
+- **Email**: admin@ai-automorph.com
 - **Password**: password
 
 ### 3. Try These Features
@@ -66,7 +66,7 @@ docker-compose up -d
 ### CLI Access
 ```bash
 pip install -r cli_requirements.txt
-./cli_client.py login --email admin@lebouzou.com
+./cli_client.py login --email admin@ai-automorph.com
 ./cli_client.py log-temp --location "Freezer" --temperature -18
 ./cli_client.py receive-material --supplier-id 1 --product "Chicken" --quantity 2.5
 ```
@@ -76,7 +76,7 @@ pip install -r cli_requirements.txt
 # Get auth token
 TOKEN=$(curl -s -X POST "http://ai-haccp.swautomorph.com:8000/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@lebouzou.com","password":"password"}' | jq -r '.access_token')
+  -d '{"email":"admin@ai-automorph.com","password":"password"}' | jq -r '.access_token')
 
 # Log temperature via API
 curl -X POST "http://ai-haccp.swautomorph.com:8000/temperature-logs" \

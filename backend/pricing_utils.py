@@ -50,18 +50,22 @@ def get_action_price(db: Session, action_type: str) -> float:
     # Default fallback price
     return 0.001
 
-def log_usage(db: Session, user_id: int, organization_id: int, action_type: str, cost: float = None):
-    """Log usage with dynamic pricing"""
+def log_usage(db: Session, user_id: int, organization_id: int, action_type: str, cost: float = None, execution_time: float = None):
+    """Log usage with dynamic pricing based on execution time"""
     from models import UsageLog
     
-    if cost is None:
+    if cost is None and execution_time is not None:
+        unit_cost = get_action_price(db, action_type)
+        cost = execution_time * unit_cost
+    elif cost is None:
         cost = get_action_price(db, action_type)
     
     usage_log = UsageLog(
         user_id=user_id,
         organization_id=organization_id,
         action_type=action_type,
-        resource_used=cost
+        resource_used=cost,
+        execution_time=execution_time
     )
     db.add(usage_log)
     db.commit()

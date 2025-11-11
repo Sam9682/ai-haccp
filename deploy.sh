@@ -252,7 +252,7 @@ main() {
     echo "=================================="
     echo "🌐 Web Interface: https://$DOMAIN"
     echo "📚 API Documentation: https://$DOMAIN/docs"
-    echo "🔑 Demo Login: admin@lebouzou.com / password"
+    echo "🔑 Demo Login: admin@ai-automorph.com / password"
     echo ""
     echo "📋 Next Steps:"
     echo "1. Test the application at https://$DOMAIN"

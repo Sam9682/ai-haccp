@@ -13,7 +13,7 @@
 
 **Solutions**:
 1. **Check credentials**:
-   - Email: `admin@lebouzou.com`
+   - Email: `admin@ai-automorph.com`
    - Password: `password`
    - Ensure no extra spaces
    - Check caps lock is off
@@ -173,7 +173,7 @@
    ```bash
    pip install -r cli_requirements.txt
    chmod +x cli_client.py
-   ./cli_client.py login --email admin@lebouzou.com
+   ./cli_client.py login --email admin@ai-automorph.com
    ```
 
 4. **API authentication**:
@@ -181,7 +181,7 @@
    # Get fresh token
    curl -X POST "http://ai-haccp.swautomorph.com:8000/auth/login" \
      -H "Content-Type: application/json" \
-     -d '{"email":"admin@lebouzou.com","password":"password"}'
+     -d '{"email":"admin@ai-automorph.com","password":"password"}'
    ```
 
 ### 💾 Database Issues

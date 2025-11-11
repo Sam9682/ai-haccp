@@ -35,6 +35,7 @@ class UsageLog(Base):
     organization_id = Column(Integer, ForeignKey("organizations.id"))
     action_type = Column(String(100), nullable=False)
     resource_used = Column(DECIMAL(10,6), nullable=False)
+    execution_time = Column(DECIMAL(10,6))
     meta_data = Column(JSON)
     created_at = Column(DateTime, server_default=func.now())
 

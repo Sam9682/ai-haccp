@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
+import time
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -67,10 +68,12 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 
 @app.post("/auth/login")
 async def login(credentials: UserLogin, db: Session = Depends(get_db)):
+    start_time = time.time()
+    
     user = db.query(User).filter(User.email == credentials.email).first()
     if not user:
         # Create demo user if it doesn't exist
-        if credentials.email == "admin@lebouzou.com" and credentials.password == "password":
+        if credentials.email == "admin@ai-automorph.com" and credentials.password == "password":
             from models import Organization
             import hashlib
             
@@ -116,7 +119,8 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
         SECRET_KEY, algorithm=ALGORITHM
     )
     
-    log_usage(db, user.id, user.organization_id, "login")
+    execution_time = time.time() - start_time
+    log_usage(db, user.id, user.organization_id, "login", execution_time=execution_time)
     return {
         "access_token": access_token, 
         "token_type": "bearer", 
@@ -159,6 +163,8 @@ async def create_temperature_log(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_log = TemperatureLog(
         organization_id=current_user.organization_id,
         recorded_by=current_user.id,
@@ -168,7 +174,8 @@ async def create_temperature_log(
     db.commit()
     db.refresh(db_log)
     
-    log_usage(db, current_user.id, current_user.organization_id, "temperature_log")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "temperature_log", execution_time=execution_time)
     return db_log
 
 @app.get("/temperature-logs", response_model=List[TemperatureLogResponse])
@@ -176,11 +183,14 @@ async def get_temperature_logs(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     logs = db.query(TemperatureLog).filter(
         TemperatureLog.organization_id == current_user.organization_id
     ).order_by(TemperatureLog.created_at.desc()).limit(100).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return logs
 
 @app.get("/temperature-locations")
@@ -188,11 +198,14 @@ async def get_temperature_locations(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     locations = db.query(TemperatureLog.location).filter(
         TemperatureLog.organization_id == current_user.organization_id
     ).distinct().all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return [location[0] for location in locations]
 
 @app.put("/temperature-logs/{log_id}", response_model=TemperatureLogResponse)
@@ -202,6 +215,8 @@ async def update_temperature_log(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_log = db.query(TemperatureLog).filter(
         TemperatureLog.id == log_id,
         TemperatureLog.organization_id == current_user.organization_id
@@ -216,7 +231,8 @@ async def update_temperature_log(
     db.commit()
     db.refresh(db_log)
     
-    log_usage(db, current_user.id, current_user.organization_id, "temperature_log_update")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "temperature_log_update", execution_time=execution_time)
     return db_log
 
 @app.delete("/temperature-logs/{log_id}")
@@ -225,6 +241,8 @@ async def delete_temperature_log(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_log = db.query(TemperatureLog).filter(
         TemperatureLog.id == log_id,
         TemperatureLog.organization_id == current_user.organization_id
@@ -236,7 +254,8 @@ async def delete_temperature_log(
     db.delete(db_log)
     db.commit()
     
-    log_usage(db, current_user.id, current_user.organization_id, "temperature_log_delete")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "temperature_log_delete", execution_time=execution_time)
     return {"message": "Temperature log deleted successfully"}
 
 @app.post("/products", response_model=ProductResponse)
@@ -245,6 +264,8 @@ async def create_product(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_product = Product(
         organization_id=current_user.organization_id,
         **product.dict()
@@ -253,7 +274,8 @@ async def create_product(
     db.commit()
     db.refresh(db_product)
     
-    log_usage(db, current_user.id, current_user.organization_id, "product_create")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "product_create", execution_time=execution_time)
     return db_product
 
 @app.get("/products", response_model=List[ProductResponse])
@@ -261,11 +283,14 @@ async def get_products(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     products = db.query(Product).filter(
         Product.organization_id == current_user.organization_id
     ).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return products
 
 @app.patch("/products/{product_id}", response_model=ProductResponse)
@@ -275,6 +300,8 @@ async def update_product(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_product = db.query(Product).filter(
         Product.id == product_id,
         Product.organization_id == current_user.organization_id
@@ -289,7 +316,8 @@ async def update_product(
     db.commit()
     db.refresh(db_product)
     
-    log_usage(db, current_user.id, current_user.organization_id, "product_update")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "product_update", execution_time=execution_time)
     return db_product
 
 @app.post("/suppliers", response_model=SupplierResponse)
@@ -298,6 +326,8 @@ async def create_supplier(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_supplier = Supplier(
         organization_id=current_user.organization_id,
         **supplier.dict()
@@ -306,7 +336,8 @@ async def create_supplier(
     db.commit()
     db.refresh(db_supplier)
     
-    log_usage(db, current_user.id, current_user.organization_id, "supplier_create")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "supplier_create", execution_time=execution_time)
     return db_supplier
 
 @app.get("/suppliers", response_model=List[SupplierResponse])
@@ -314,11 +345,14 @@ async def get_suppliers(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     suppliers = db.query(Supplier).filter(
         Supplier.organization_id == current_user.organization_id
     ).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return suppliers
 
 @app.get("/usage-report")
@@ -341,7 +375,8 @@ async def get_usage_report(
     usage_by_type = db.query(
         UsageLog.action_type,
         func.sum(UsageLog.resource_used).label('total_cost'),
-        func.count(UsageLog.id).label('count')
+        func.count(UsageLog.id).label('count'),
+        func.avg(UsageLog.execution_time).label('avg_execution_time')
     ).filter(
         UsageLog.organization_id == current_user.organization_id
     ).group_by(UsageLog.action_type).all()
@@ -350,7 +385,12 @@ async def get_usage_report(
         "total_cost": float(total_cost),
         "monthly_cost": float(monthly_cost),
         "usage_breakdown": [
-            {"action": item.action_type, "cost": float(item.total_cost), "count": item.count}
+            {
+                "action": item.action_type, 
+                "cost": float(item.total_cost), 
+                "count": item.count,
+                "avg_execution_time": float(item.avg_execution_time) if item.avg_execution_time else None
+            }
             for item in usage_by_type
         ]
     }
@@ -361,6 +401,8 @@ async def create_cleaning_plan(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_plan = CleaningPlan(
         organization_id=current_user.organization_id,
         **plan.dict()
@@ -369,7 +411,8 @@ async def create_cleaning_plan(
     db.commit()
     db.refresh(db_plan)
     
-    log_usage(db, current_user.id, current_user.organization_id, "cleaning_plan_create")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "cleaning_plan_create", execution_time=execution_time)
     return db_plan
 
 @app.get("/cleaning-plans", response_model=List[CleaningPlanResponse])
@@ -377,11 +420,14 @@ async def get_cleaning_plans(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     plans = db.query(CleaningPlan).filter(
         CleaningPlan.organization_id == current_user.organization_id
     ).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return plans
 
 @app.post("/room-cleaning", response_model=RoomCleaningResponse)
@@ -390,6 +436,8 @@ async def mark_room_cleaned(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_cleaning = RoomCleaning(
         organization_id=current_user.organization_id,
         cleaned_by=current_user.id,
@@ -399,7 +447,8 @@ async def mark_room_cleaned(
     db.commit()
     db.refresh(db_cleaning)
     
-    log_usage(db, current_user.id, current_user.organization_id, "room_cleaning")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "room_cleaning", execution_time=execution_time)
     return db_cleaning
 
 @app.get("/room-cleanings/{plan_id}", response_model=List[RoomCleaningResponse])
@@ -408,12 +457,15 @@ async def get_room_cleanings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     cleanings = db.query(RoomCleaning).filter(
         RoomCleaning.organization_id == current_user.organization_id,
         RoomCleaning.cleaning_plan_id == plan_id
     ).order_by(RoomCleaning.cleaned_at.desc()).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return cleanings
 
 @app.get("/help")
@@ -425,7 +477,7 @@ async def help_page():
         "sections": [
             {
                 "title": "Getting Started",
-                "content": "Login with admin@lebouzou.com / password to access the demo"
+                "content": "Login with admin@ai-automorph.com / password to access the demo"
             },
             {
                 "title": "Temperature Monitoring",
@@ -460,6 +512,8 @@ async def create_material_reception(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     from ai_vision import ai_vision_service
     import base64
     import os
@@ -512,7 +566,8 @@ async def create_material_reception(
     db.commit()
     db.refresh(db_reception)
     
-    log_usage(db, current_user.id, current_user.organization_id, "material_reception")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "material_reception", execution_time=execution_time)
     return db_reception
 
 @app.get("/material-receptions", response_model=List[MaterialReceptionResponse])
@@ -520,11 +575,14 @@ async def get_material_receptions(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     receptions = db.query(MaterialReception).filter(
         MaterialReception.organization_id == current_user.organization_id
     ).order_by(MaterialReception.received_at.desc()).limit(100).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return receptions
 
 @app.patch("/material-receptions/{reception_id}", response_model=MaterialReceptionResponse)
@@ -534,6 +592,8 @@ async def update_material_reception(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_reception = db.query(MaterialReception).filter(
         MaterialReception.id == reception_id,
         MaterialReception.organization_id == current_user.organization_id
@@ -549,7 +609,8 @@ async def update_material_reception(
     db.commit()
     db.refresh(db_reception)
     
-    log_usage(db, current_user.id, current_user.organization_id, "material_reception_update")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "material_reception_update", execution_time=execution_time)
     return db_reception
 
 @app.post("/analyze-reception-image")
@@ -558,11 +619,14 @@ async def analyze_reception_image(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     from ai_vision import ai_vision_service
     
     try:
         result = ai_vision_service.analyze_reception_image(image_data.get("image", ""))
-        log_usage(db, current_user.id, current_user.organization_id, "ai_image_analysis")
+        execution_time = time.time() - start_time
+        log_usage(db, current_user.id, current_user.organization_id, "ai_image_analysis", execution_time=execution_time)
         return result
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -577,8 +641,11 @@ async def get_configuration_parameters(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     parameters = db.query(Configuration).all()
-    log_usage(db, current_user.id, current_user.organization_id, "config_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "config_query", execution_time=execution_time)
     return parameters
 
 @app.put("/configuration/{param_id}", response_model=ConfigurationResponse)
@@ -588,6 +655,8 @@ async def update_configuration_parameter(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     parameter = db.query(Configuration).filter(Configuration.id == param_id).first()
     if not parameter:
         raise HTTPException(status_code=404, detail="Configuration parameter not found")
@@ -598,7 +667,8 @@ async def update_configuration_parameter(
     db.commit()
     db.refresh(parameter)
     
-    log_usage(db, current_user.id, current_user.organization_id, "config_update")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "config_update", execution_time=execution_time)
     return parameter
 
 @app.get("/temperature-ranges", response_model=UserTemperatureRangeResponse)
@@ -607,6 +677,8 @@ async def get_temperature_ranges(
     db: Session = Depends(get_db)
 ):
     """Get user-specific temperature ranges"""
+    start_time = time.time()
+    
     user_ranges = db.query(UserTemperatureRange).filter(
         UserTemperatureRange.user_id == current_user.id
     ).first()
@@ -621,7 +693,8 @@ async def get_temperature_ranges(
         db.commit()
         db.refresh(user_ranges)
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return user_ranges
 
 @app.put("/temperature-ranges", response_model=UserTemperatureRangeResponse)
@@ -631,6 +704,8 @@ async def update_temperature_ranges(
     db: Session = Depends(get_db)
 ):
     """Update user-specific temperature ranges"""
+    start_time = time.time()
+    
     user_ranges = db.query(UserTemperatureRange).filter(
         UserTemperatureRange.user_id == current_user.id
     ).first()
@@ -650,7 +725,8 @@ async def update_temperature_ranges(
     db.commit()
     db.refresh(user_ranges)
     
-    log_usage(db, current_user.id, current_user.organization_id, "config_update")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "config_update", execution_time=execution_time)
     return user_ranges
 
 # Incident Management
@@ -660,6 +736,8 @@ async def create_incident(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_incident = Incident(
         organization_id=current_user.organization_id,
         reported_by=current_user.id,
@@ -669,7 +747,8 @@ async def create_incident(
     db.commit()
     db.refresh(db_incident)
     
-    log_usage(db, current_user.id, current_user.organization_id, "incident_create")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "incident_create", execution_time=execution_time)
     return db_incident
 
 @app.get("/incidents", response_model=List[IncidentResponse])
@@ -677,11 +756,14 @@ async def get_incidents(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     incidents = db.query(Incident).filter(
         Incident.organization_id == current_user.organization_id
     ).order_by(Incident.created_at.desc()).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return incidents
 
 # Batch Tracking
@@ -691,6 +773,8 @@ async def create_batch_tracking(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_batch = BatchTracking(
         organization_id=current_user.organization_id,
         **batch.dict()
@@ -699,7 +783,8 @@ async def create_batch_tracking(
     db.commit()
     db.refresh(db_batch)
     
-    log_usage(db, current_user.id, current_user.organization_id, "batch_tracking_create")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "batch_tracking_create", execution_time=execution_time)
     return db_batch
 
 @app.get("/batch-tracking", response_model=List[BatchTrackingResponse])
@@ -707,11 +792,14 @@ async def get_batch_tracking(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     batches = db.query(BatchTracking).filter(
         BatchTracking.organization_id == current_user.organization_id
     ).order_by(BatchTracking.created_at.desc()).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return batches
 
 # Cleaning Records
@@ -721,6 +809,8 @@ async def create_cleaning_record(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     db_record = CleaningRecord(
         organization_id=current_user.organization_id,
         performed_by=current_user.id,
@@ -730,7 +820,8 @@ async def create_cleaning_record(
     db.commit()
     db.refresh(db_record)
     
-    log_usage(db, current_user.id, current_user.organization_id, "cleaning_record_create")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "cleaning_record_create", execution_time=execution_time)
     return db_record
 
 @app.get("/cleaning-records", response_model=List[CleaningRecordResponse])
@@ -738,11 +829,14 @@ async def get_cleaning_records(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    start_time = time.time()
+    
     records = db.query(CleaningRecord).filter(
         CleaningRecord.organization_id == current_user.organization_id
     ).order_by(CleaningRecord.created_at.desc()).all()
     
-    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    execution_time = time.time() - start_time
+    log_usage(db, current_user.id, current_user.organization_id, "data_query", execution_time=execution_time)
     return records
 
 @app.get("/health")

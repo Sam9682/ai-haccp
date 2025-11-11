@@ -47,7 +47,8 @@ export default function UsageReport() {
   const chartData = usageData.usage_breakdown.map((item, index) => ({
     name: item.action.replace('_', ' ').toUpperCase(),
     value: item.cost,
-    count: item.count
+    count: item.count,
+    avgExecutionTime: item.avg_execution_time || 0
   }));
 
   if (loading) {
@@ -167,6 +168,7 @@ export default function UsageReport() {
                       <TableCell align="right">{t('count', language)}</TableCell>
                       <TableCell align="right">{t('totalCostCol', language)}</TableCell>
                       <TableCell align="right">{t('avgCost', language)}</TableCell>
+                      <TableCell align="right">Avg Exec Time (ms)</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -176,6 +178,9 @@ export default function UsageReport() {
                         <TableCell align="right">{item.count}</TableCell>
                         <TableCell align="right">${item.cost.toFixed(4)}</TableCell>
                         <TableCell align="right">${(item.cost / item.count).toFixed(6)}</TableCell>
+                        <TableCell align="right">
+                          {item.avg_execution_time ? (item.avg_execution_time * 1000).toFixed(2) : 'N/A'}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

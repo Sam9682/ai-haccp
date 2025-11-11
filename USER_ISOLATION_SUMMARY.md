@@ -122,7 +122,7 @@ WHERE organization_id = current_user.organization_id;
 4. All existing data preserved with proper ownership
 
 ### Manual Verification
-1. Login with demo credentials: admin@lebouzou.com / password
+1. Login with demo credentials: admin@ai-automorph.com / password
 2. Verify data isolation in API responses
 3. Test cross-organization access (should fail)
 4. Confirm audit trails in database

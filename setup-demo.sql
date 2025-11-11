@@ -6,7 +6,7 @@ INSERT INTO organizations (name, type) VALUES
 
 -- Create demo user (password: 'password')
 INSERT INTO users (email, password_hash, name, role, organization_id) VALUES 
-('admin@lebouzou.com', '$2b$12$Hup1jDOCRFsslwMHfAGLje0Wx2TwHbETYKZT9GaLW4fmxpXtBpfA6', 'Demo Admin', 'admin', 1);
+('admin@ai-automorph.com', '$2b$12$Hup1jDOCRFsslwMHfAGLje0Wx2TwHbETYKZT9GaLW4fmxpXtBpfA6', 'Demo Admin', 'admin', 1);
 
 -- Create demo products
 INSERT INTO products (organization_id, name, category, allergens, shelf_life_days, storage_temp_min, storage_temp_max) VALUES 
