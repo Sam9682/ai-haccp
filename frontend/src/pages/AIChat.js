@@ -95,16 +95,17 @@ export default function AIChat() {
       
       if (temperature !== undefined && location !== 'unknown location') {
         try {
+          const isWithinLimits = temperature >= -18 && temperature <= 4;
           const result = await api.post('/temperature-logs', {
             location: location.trim(),
             temperature: temperature,
-            is_within_limits: temperature >= -18 && temperature <= 4
+            is_within_limits: isWithinLimits
           });
           
-          const status = result.is_within_limits ? `✅ ${t('normal', language)}` : `⚠️ ${t('alert', language)}`;
+          const status = isWithinLimits ? `✅ ${t('normal', language)}` : `⚠️ ${t('alert', language)}`;
           return isFrench ? 
-            `🌡️ Température enregistrée:\n• ${result.location}: ${result.temperature}°C\n• Statut: ${status}` :
-            `🌡️ Temperature logged:\n• ${result.location}: ${result.temperature}°C\n• Status: ${status}`;
+            `🌡️ Température enregistrée:\n• ${location.trim()}: ${temperature}°C\n• Statut: ${status}` :
+            `🌡️ Temperature logged:\n• ${location.trim()}: ${temperature}°C\n• Status: ${status}`;
         } catch (error) {
           return '❌ Failed to log temperature.';
         }
@@ -328,7 +329,10 @@ export default function AIChat() {
             </Button>
           </Box>
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-            💡 Try: "Log temp 2.5°C in freezer", "Add product chicken", "Clean kitchen", "What's our status?"
+            {language === 'fr' ? 
+              '💡 Essayez: "Enregistrer temp 2.5°C dans congélateur", "Ajouter produit poulet", "Nettoyer cuisine", "Quel est notre statut?"' :
+              '💡 Try: "Log temp 2.5°C in freezer", "Add product chicken", "Clean kitchen", "What\'s our status?"'
+            }
           </Typography>
         </Box>
       </Paper>

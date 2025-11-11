@@ -207,6 +207,26 @@ async def update_temperature_log(
     log_usage(db, current_user.id, current_user.organization_id, "temperature_log_update")
     return db_log
 
+@app.delete("/temperature-logs/{log_id}")
+async def delete_temperature_log(
+    log_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_log = db.query(TemperatureLog).filter(
+        TemperatureLog.id == log_id,
+        TemperatureLog.organization_id == current_user.organization_id
+    ).first()
+    
+    if not db_log:
+        raise HTTPException(status_code=404, detail="Temperature log not found")
+    
+    db.delete(db_log)
+    db.commit()
+    
+    log_usage(db, current_user.id, current_user.organization_id, "temperature_log_delete")
+    return {"message": "Temperature log deleted successfully"}
+
 @app.post("/products", response_model=ProductResponse)
 async def create_product(
     product: ProductCreate,

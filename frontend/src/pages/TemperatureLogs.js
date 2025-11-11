@@ -18,7 +18,7 @@ import {
   Chip,
   Alert
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Settings as SettingsIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Settings as SettingsIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations/translations';
 import api from '../services/api';
@@ -137,6 +137,18 @@ export default function TemperatureLogs() {
     }
   };
 
+  const handleDelete = async (logId) => {
+    if (window.confirm('Are you sure you want to delete this temperature log?')) {
+      try {
+        await api.delete(`/temperature-logs/${logId}`);
+        fetchLogs();
+      } catch (error) {
+        console.error('Error deleting temperature log:', error);
+        alert('Error deleting temperature log: ' + (error.response?.data?.detail || error.message));
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Form submitted with data:', formData);
@@ -228,8 +240,17 @@ export default function TemperatureLogs() {
                     size="small"
                     startIcon={<EditIcon />}
                     onClick={() => handleEditClick(log)}
+                    sx={{ mr: 1 }}
                   >
                     Edit
+                  </Button>
+                  <Button
+                    size="small"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    onClick={() => handleDelete(log.id)}
+                  >
+                    Delete
                   </Button>
                 </TableCell>
               </TableRow>
