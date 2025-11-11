@@ -49,7 +49,10 @@ class Product(Base):
     shelf_life_days = Column(Integer)
     storage_temp_min = Column(DECIMAL(5,2))
     storage_temp_max = Column(DECIMAL(5,2))
+    created_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, server_default=func.now())
+    
+    creator = relationship("User")
 
 class Supplier(Base):
     __tablename__ = "suppliers"
@@ -60,7 +63,10 @@ class Supplier(Base):
     contact_info = Column(JSON)
     certification_status = Column(String(50))
     risk_level = Column(Integer, default=1)
+    created_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, server_default=func.now())
+    
+    creator = relationship("User")
 
 class TemperatureLog(Base):
     __tablename__ = "temperature_logs"
@@ -86,6 +92,9 @@ class CleaningRecord(Base):
     verified_by = Column(Integer, ForeignKey("users.id"))
     notes = Column(Text)
     created_at = Column(DateTime, server_default=func.now())
+    
+    performer = relationship("User", foreign_keys=[performed_by])
+    verifier = relationship("User", foreign_keys=[verified_by])
 
 class BatchTracking(Base):
     __tablename__ = "batch_tracking"
@@ -127,8 +136,11 @@ class CleaningPlan(Base):
     rooms = Column(JSON)
     cleaning_frequency = Column(String(50), nullable=False)
     estimated_duration = Column(Integer)
+    created_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    creator = relationship("User")
 
 class RoomCleaning(Base):
     __tablename__ = "room_cleanings"

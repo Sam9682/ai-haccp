@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 class HACCPAPIClient:
-    def __init__(self, base_url="http://188.165.71.139:9001"):
+    def __init__(self, base_url="http://ai-haccp.swautomorph.com:9001"):
         self.base_url = base_url
         self.token = None
         self.headers = {"Content-Type": "application/json"}

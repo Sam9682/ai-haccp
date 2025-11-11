@@ -4,7 +4,7 @@ The AI-HACCP platform provides multiple ways to interact with the system, making
 
 ## 🌐 Web Interface
 
-**Access**: http://188.165.71.139:3000
+**Access**: http://ai-haccp.swautomorph.com:3000
 
 - **Dashboard**: Overview of compliance status and metrics
 - **Temperature Logs**: Interactive temperature monitoring
@@ -38,12 +38,12 @@ The AI-HACCP platform provides multiple ways to interact with the system, making
 
 ## 🔧 REST API
 
-**Base URL**: http://188.165.71.139:8000
-**Documentation**: http://188.165.71.139:8000/docs
+**Base URL**: http://ai-haccp.swautomorph.com:8000
+**Documentation**: http://ai-haccp.swautomorph.com:8000/docs
 
 ### Authentication
 ```bash
-curl -X POST "http://188.165.71.139:8000/auth/login" \
+curl -X POST "http://ai-haccp.swautomorph.com:8000/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@lebouzou.com", "password": "password"}'
 ```
@@ -53,43 +53,43 @@ curl -X POST "http://188.165.71.139:8000/auth/login" \
 #### Temperature Management
 ```bash
 # Log temperature
-curl -X POST "http://188.165.71.139:8000/temperature-logs" \
+curl -X POST "http://ai-haccp.swautomorph.com:8000/temperature-logs" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"location": "Walk-in Cooler", "temperature": 2.5}'
 
 # Get temperature logs
-curl -X GET "http://188.165.71.139:8000/temperature-logs" \
+curl -X GET "http://ai-haccp.swautomorph.com:8000/temperature-logs" \
   -H "Authorization: Bearer <token>"
 ```
 
 #### Product Management
 ```bash
 # Add product
-curl -X POST "http://188.165.71.139:8000/products" \
+curl -X POST "http://ai-haccp.swautomorph.com:8000/products" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"name": "Fresh Salmon", "category": "Seafood", "allergens": ["fish"]}'
 
 # Get products
-curl -X GET "http://188.165.71.139:8000/products" \
+curl -X GET "http://ai-haccp.swautomorph.com:8000/products" \
   -H "Authorization: Bearer <token>"
 ```
 
 #### Material Reception
 ```bash
 # Record material reception
-curl -X POST "http://188.165.71.139:8000/material-reception" \
+curl -X POST "http://ai-haccp.swautomorph.com:8000/material-reception" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"supplier_id": 1, "product_name": "Chicken Breast", "category": "poultry", "quantity": 2.5, "unit": "kg"}'
 
 # Get material receptions
-curl -X GET "http://188.165.71.139:8000/material-receptions" \
+curl -X GET "http://ai-haccp.swautomorph.com:8000/material-receptions" \
   -H "Authorization: Bearer <token>"
 
 # AI image analysis
-curl -X POST "http://188.165.71.139:8000/analyze-reception-image" \
+curl -X POST "http://ai-haccp.swautomorph.com:8000/analyze-reception-image" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"image": "data:image/jpeg;base64,/9j/4AAQ..."}'
@@ -98,13 +98,13 @@ curl -X POST "http://188.165.71.139:8000/analyze-reception-image" \
 #### Cleaning Management
 ```bash
 # Create cleaning plan
-curl -X POST "http://188.165.71.139:8000/cleaning-plans" \
+curl -X POST "http://ai-haccp.swautomorph.com:8000/cleaning-plans" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"name": "Daily Clean", "rooms": [{"name": "Kitchen", "x": 50, "y": 50, "width": 200, "height": 150}], "cleaning_frequency": "daily"}'
 
 # Mark room cleaned
-curl -X POST "http://188.165.71.139:8000/room-cleaning" \
+curl -X POST "http://ai-haccp.swautomorph.com:8000/room-cleaning" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"room_name": "Kitchen", "cleaning_plan_id": 1}'
@@ -176,7 +176,7 @@ chmod +x cli_client.py
       "command": "python",
       "args": ["mcp_server.py"],
       "env": {
-        "DATABASE_URL": "postgresql://postgres:postgres@188.165.71.139:5432/ai_haccp"
+        "DATABASE_URL": "postgresql://postgres:postgres@ai-haccp.swautomorph.com:5432/ai_haccp"
       }
     }
   }
@@ -259,8 +259,8 @@ const response = await fetch('/api/temperature-logs', {
 ### cURL Integration
 ```bash
 # One-liner temperature logging
-curl -X POST "http://188.165.71.139:8000/temperature-logs" \
-  -H "Authorization: Bearer $(curl -s -X POST "http://188.165.71.139:8000/auth/login" \
+curl -X POST "http://ai-haccp.swautomorph.com:8000/temperature-logs" \
+  -H "Authorization: Bearer $(curl -s -X POST "http://ai-haccp.swautomorph.com:8000/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@lebouzou.com","password":"password"}' | jq -r '.access_token')" \
   -H "Content-Type: application/json" \

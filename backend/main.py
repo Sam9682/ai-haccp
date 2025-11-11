@@ -9,7 +9,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from database import get_db, engine, init_database
-from models import User, Organization, UsageLog, TemperatureLog, Product, Supplier, CleaningPlan, RoomCleaning, MaterialReception, Configuration
+from models import User, Organization, UsageLog, TemperatureLog, Product, Supplier, CleaningPlan, RoomCleaning, MaterialReception, Configuration, Incident, BatchTracking, CleaningRecord
 from schemas import *
 
 app = FastAPI(title="AI-HACCP Platform", version="1.0.0")
@@ -183,6 +183,18 @@ async def get_temperature_logs(
     log_usage(db, current_user.id, current_user.organization_id, "data_query")
     return logs
 
+@app.get("/temperature-locations")
+async def get_temperature_locations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    locations = db.query(TemperatureLog.location).filter(
+        TemperatureLog.organization_id == current_user.organization_id
+    ).distinct().all()
+    
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    return [location[0] for location in locations]
+
 @app.put("/temperature-logs/{log_id}", response_model=TemperatureLogResponse)
 async def update_temperature_log(
     log_id: int,
@@ -235,6 +247,7 @@ async def create_product(
 ):
     db_product = Product(
         organization_id=current_user.organization_id,
+        created_by=current_user.id,
         **product.dict()
     )
     db.add(db_product)
@@ -288,6 +301,7 @@ async def create_supplier(
 ):
     db_supplier = Supplier(
         organization_id=current_user.organization_id,
+        created_by=current_user.id,
         **supplier.dict()
     )
     db.add(db_supplier)
@@ -351,6 +365,7 @@ async def create_cleaning_plan(
 ):
     db_plan = CleaningPlan(
         organization_id=current_user.organization_id,
+        created_by=current_user.id,
         **plan.dict()
     )
     db.add(db_plan)
@@ -658,6 +673,98 @@ async def update_temperature_ranges(
     db.commit()
     log_usage(db, current_user.id, current_user.organization_id, "config_update")
     return {"message": "Temperature ranges updated successfully"}
+
+# Incident Management
+@app.post("/incidents", response_model=IncidentResponse)
+async def create_incident(
+    incident: IncidentCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_incident = Incident(
+        organization_id=current_user.organization_id,
+        reported_by=current_user.id,
+        **incident.dict()
+    )
+    db.add(db_incident)
+    db.commit()
+    db.refresh(db_incident)
+    
+    log_usage(db, current_user.id, current_user.organization_id, "incident_create")
+    return db_incident
+
+@app.get("/incidents", response_model=List[IncidentResponse])
+async def get_incidents(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    incidents = db.query(Incident).filter(
+        Incident.organization_id == current_user.organization_id
+    ).order_by(Incident.created_at.desc()).all()
+    
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    return incidents
+
+# Batch Tracking
+@app.post("/batch-tracking", response_model=BatchTrackingResponse)
+async def create_batch_tracking(
+    batch: BatchTrackingCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_batch = BatchTracking(
+        organization_id=current_user.organization_id,
+        **batch.dict()
+    )
+    db.add(db_batch)
+    db.commit()
+    db.refresh(db_batch)
+    
+    log_usage(db, current_user.id, current_user.organization_id, "batch_tracking_create")
+    return db_batch
+
+@app.get("/batch-tracking", response_model=List[BatchTrackingResponse])
+async def get_batch_tracking(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    batches = db.query(BatchTracking).filter(
+        BatchTracking.organization_id == current_user.organization_id
+    ).order_by(BatchTracking.created_at.desc()).all()
+    
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    return batches
+
+# Cleaning Records
+@app.post("/cleaning-records", response_model=CleaningRecordResponse)
+async def create_cleaning_record(
+    record: CleaningRecordCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_record = CleaningRecord(
+        organization_id=current_user.organization_id,
+        performed_by=current_user.id,
+        **record.dict()
+    )
+    db.add(db_record)
+    db.commit()
+    db.refresh(db_record)
+    
+    log_usage(db, current_user.id, current_user.organization_id, "cleaning_record_create")
+    return db_record
+
+@app.get("/cleaning-records", response_model=List[CleaningRecordResponse])
+async def get_cleaning_records(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    records = db.query(CleaningRecord).filter(
+        CleaningRecord.organization_id == current_user.organization_id
+    ).order_by(CleaningRecord.created_at.desc()).all()
+    
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    return records
 
 @app.get("/health")
 async def health_check():

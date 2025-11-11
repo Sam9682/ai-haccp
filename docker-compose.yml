@@ -20,7 +20,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      REACT_APP_API_URL: http://188.165.71.139:9001
+      REACT_APP_API_URL: http://ai-haccp.swautomorph.com:9001
     depends_on:
       - api
     volumes:

@@ -172,7 +172,7 @@ verify_deployment() {
     
     # Test API health endpoint
     sleep 10
-    if curl -f -s "http://188.165.71.139:9001/health" > /dev/null; then
+    if curl -f -s "http://ai-haccp.swautomorph.com:9001/health" > /dev/null; then
         log_info "API health check passed ✅"
     else
         log_warn "API health check failed, but services are running"

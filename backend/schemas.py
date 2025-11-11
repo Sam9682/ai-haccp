@@ -103,11 +103,60 @@ class BatchTrackingCreate(BaseModel):
     location: Optional[str] = None
     status: Optional[str] = "received"
 
+class BatchTrackingResponse(BaseModel):
+    id: int
+    batch_number: str
+    product_id: int
+    supplier_id: Optional[int]
+    production_date: Optional[date]
+    expiry_date: Optional[date]
+    location: Optional[str]
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class CleaningRecordCreate(BaseModel):
+    area: str
+    cleaning_type: Optional[str] = None
+    products_used: Optional[List[str]] = None
+    notes: Optional[str] = None
+
+class CleaningRecordResponse(BaseModel):
+    id: int
+    area: str
+    cleaning_type: Optional[str]
+    products_used: Optional[List[str]]
+    performed_by: int
+    verified_by: Optional[int]
+    notes: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class IncidentCreate(BaseModel):
     title: str
     description: Optional[str] = None
     severity: str
     category: Optional[str] = None
+
+class IncidentResponse(BaseModel):
+    id: int
+    title: str
+    description: Optional[str]
+    severity: str
+    category: Optional[str]
+    reported_by: int
+    status: str
+    root_cause: Optional[str]
+    corrective_actions: Optional[str]
+    created_at: datetime
+    resolved_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
 
 class CleaningPlanCreate(BaseModel):
     name: str

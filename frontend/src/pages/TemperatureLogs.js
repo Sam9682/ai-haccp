@@ -16,7 +16,8 @@ import {
   TableRow,
   Paper,
   Chip,
-  Alert
+  Alert,
+  Autocomplete
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Settings as SettingsIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -26,6 +27,7 @@ import api from '../services/api';
 export default function TemperatureLogs() {
   const { language } = useLanguage();
   const [logs, setLogs] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -56,6 +58,7 @@ export default function TemperatureLogs() {
   useEffect(() => {
     fetchLogs();
     fetchTempRanges();
+    fetchLocations();
   }, []);
 
   const fetchLogs = async () => {
@@ -79,6 +82,15 @@ export default function TemperatureLogs() {
       });
     } catch (error) {
       console.error('Error fetching temperature ranges:', error);
+    }
+  };
+
+  const fetchLocations = async () => {
+    try {
+      const response = await api.get('/temperature-locations');
+      setLocations(response.data);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
     }
   };
 
@@ -168,6 +180,7 @@ export default function TemperatureLogs() {
       setOpen(false);
       setFormData({ location: '', temperature: '', equipment_id: '', is_within_limits: true });
       fetchLogs();
+      fetchLocations();
     } catch (error) {
       console.error('Error creating temperature log:', error);
       alert('Error creating temperature log: ' + (error.response?.data?.detail || error.message));
@@ -274,16 +287,28 @@ export default function TemperatureLogs() {
         <form onSubmit={handleSubmit}>
           <DialogTitle>{t('addTemperatureLog', language)}</DialogTitle>
           <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label={t('location', language)}
-              fullWidth
-              variant="outlined"
+            <Autocomplete
+              freeSolo
+              options={locations}
               value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              required
-              sx={{ mb: 2 }}
+              onChange={(event, newValue) => {
+                setFormData({ ...formData, location: newValue || '' });
+              }}
+              onInputChange={(event, newInputValue) => {
+                setFormData({ ...formData, location: newInputValue });
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  autoFocus
+                  margin="dense"
+                  label={t('location', language)}
+                  fullWidth
+                  variant="outlined"
+                  required
+                  sx={{ mb: 2 }}
+                />
+              )}
             />
             <TextField
               margin="dense"

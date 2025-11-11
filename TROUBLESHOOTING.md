@@ -179,7 +179,7 @@
 4. **API authentication**:
    ```bash
    # Get fresh token
-   curl -X POST "http://188.165.71.139:8000/auth/login" \
+   curl -X POST "http://ai-haccp.swautomorph.com:8000/auth/login" \
      -H "Content-Type: application/json" \
      -d '{"email":"admin@lebouzou.com","password":"password"}'
    ```
@@ -285,7 +285,7 @@ docker-compose up -d
 ### Self-Service
 1. **Built-in Help**: Visit `/help` page in the platform
 2. **AI Assistant**: Ask "help" or "what can you do?"
-3. **API Docs**: http://188.165.71.139:8000/docs
+3. **API Docs**: http://ai-haccp.swautomorph.com:8000/docs
 4. **Logs**: `docker-compose logs -f`
 
 ### Contact Support

@@ -7,7 +7,7 @@ AI-HACCP is a comprehensive Food Safety Management Platform designed specificall
 ## 🚀 Quick Start Guide
 
 ### 1. First Login
-- **URL**: http://188.165.71.139:3000
+- **URL**: http://ai-haccp.swautomorph.com:3000
 - **Demo Credentials**:
   - Email: `admin@lebouzou.com`
   - Password: `password`
@@ -203,7 +203,7 @@ After login, you'll see the main dashboard with:
 Connect existing restaurant systems:
 ```bash
 # Example: Log temperature via API
-curl -X POST "http://188.165.71.139:8000/temperature-logs" \
+curl -X POST "http://ai-haccp.swautomorph.com:8000/temperature-logs" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"location": "Walk-in Cooler", "temperature": 2.5}'
