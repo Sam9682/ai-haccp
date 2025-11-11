@@ -63,10 +63,27 @@ cd ai-haccp
 docker-compose up -d
 ```
 
+### HTTPS Deployment
+
+The platform supports HTTPS with SSL certificates:
+
+1. **Deploy with HTTPS**:
+```bash
+./deploy-https.sh
+```
+
+2. **Manual HTTPS setup**:
+```bash
+# Ensure SSL certificates are in ./ssl/ directory
+# - ./ssl/fullchain.pem
+# - ./ssl/privkey.pem
+docker-compose up -d --build
+```
+
 2. **Access the application**:
-- Frontend: http://ai-haccp.swautomorph.com:3000
-- Backend API: http://ai-haccp.swautomorph.com:8000
-- API Documentation: http://ai-haccp.swautomorph.com:8000/docs
+- Frontend: https://ai-haccp.swautomorph.com
+- Backend API: https://ai-haccp.swautomorph.com/api
+- API Documentation: https://ai-haccp.swautomorph.com/api/docs
 
 3. **Default Login**:
 - Email: admin@ai-automorph.com
@@ -154,7 +171,7 @@ The platform is fully responsive and works on:
 ### REST API
 ```javascript
 // Example API usage
-const response = await fetch('/api/temperature-logs', {
+const response = await fetch('https://ai-haccp.swautomorph.com/api/temperature-logs', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer <token>',
@@ -205,8 +222,8 @@ This project is licensed under the MIT License.
 
 ### 🌐 Web Help
 - **Built-in Help**: Navigate to "Help & Guide" in the web interface
-- **API Documentation**: http://ai-haccp.swautomorph.com:8000/docs
-- **Interactive Help**: http://ai-haccp.swautomorph.com:3000/help
+- **API Documentation**: https://ai-haccp.swautomorph.com/api/docs
+- **Interactive Help**: https://ai-haccp.swautomorph.com/help
 
 ### 📞 Support
 - **Email**: support@ai-haccp.com
