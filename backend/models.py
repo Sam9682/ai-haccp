@@ -49,10 +49,7 @@ class Product(Base):
     shelf_life_days = Column(Integer)
     storage_temp_min = Column(DECIMAL(5,2))
     storage_temp_max = Column(DECIMAL(5,2))
-    created_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, server_default=func.now())
-    
-    creator = relationship("User")
 
 class Supplier(Base):
     __tablename__ = "suppliers"
@@ -63,10 +60,7 @@ class Supplier(Base):
     contact_info = Column(JSON)
     certification_status = Column(String(50))
     risk_level = Column(Integer, default=1)
-    created_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, server_default=func.now())
-    
-    creator = relationship("User")
 
 class TemperatureLog(Base):
     __tablename__ = "temperature_logs"
@@ -136,11 +130,8 @@ class CleaningPlan(Base):
     rooms = Column(JSON)
     cleaning_frequency = Column(String(50), nullable=False)
     estimated_duration = Column(Integer)
-    created_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
-    
-    creator = relationship("User")
 
 class RoomCleaning(Base):
     __tablename__ = "room_cleanings"
@@ -188,3 +179,21 @@ class MaterialReception(Base):
     
     supplier = relationship("Supplier")
     user = relationship("User")
+
+class UserTemperatureRange(Base):
+    __tablename__ = "user_temperature_ranges"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    refrigerated_min = Column(DECIMAL(5,2), default=0.0)
+    refrigerated_max = Column(DECIMAL(5,2), default=4.0)
+    frozen_min = Column(DECIMAL(5,2), default=-25.0)
+    frozen_max = Column(DECIMAL(5,2), default=-18.0)
+    ambient_min = Column(DECIMAL(5,2), default=15.0)
+    ambient_max = Column(DECIMAL(5,2), default=25.0)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    user = relationship("User")
+    organization = relationship("Organization")

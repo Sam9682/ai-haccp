@@ -238,3 +238,26 @@ class ConfigurationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UserTemperatureRangeCreate(BaseModel):
+    refrigerated_min: Optional[Decimal] = 0.0
+    refrigerated_max: Optional[Decimal] = 4.0
+    frozen_min: Optional[Decimal] = -25.0
+    frozen_max: Optional[Decimal] = -18.0
+    ambient_min: Optional[Decimal] = 15.0
+    ambient_max: Optional[Decimal] = 25.0
+
+class UserTemperatureRangeResponse(BaseModel):
+    id: int
+    user_id: int
+    refrigerated_min: Decimal
+    refrigerated_max: Decimal
+    frozen_min: Decimal
+    frozen_max: Decimal
+    ambient_min: Decimal
+    ambient_max: Decimal
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

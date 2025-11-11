@@ -9,7 +9,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from database import get_db, engine, init_database
-from models import User, Organization, UsageLog, TemperatureLog, Product, Supplier, CleaningPlan, RoomCleaning, MaterialReception, Configuration, Incident, BatchTracking, CleaningRecord
+from models import User, Organization, UsageLog, TemperatureLog, Product, Supplier, CleaningPlan, RoomCleaning, MaterialReception, Configuration, Incident, BatchTracking, CleaningRecord, UserTemperatureRange
 from schemas import *
 
 app = FastAPI(title="AI-HACCP Platform", version="1.0.0")
@@ -247,7 +247,6 @@ async def create_product(
 ):
     db_product = Product(
         organization_id=current_user.organization_id,
-        created_by=current_user.id,
         **product.dict()
     )
     db.add(db_product)
@@ -301,7 +300,6 @@ async def create_supplier(
 ):
     db_supplier = Supplier(
         organization_id=current_user.organization_id,
-        created_by=current_user.id,
         **supplier.dict()
     )
     db.add(db_supplier)
@@ -365,7 +363,6 @@ async def create_cleaning_plan(
 ):
     db_plan = CleaningPlan(
         organization_id=current_user.organization_id,
-        created_by=current_user.id,
         **plan.dict()
     )
     db.add(db_plan)
@@ -604,75 +601,57 @@ async def update_configuration_parameter(
     log_usage(db, current_user.id, current_user.organization_id, "config_update")
     return parameter
 
-@app.get("/temperature-ranges")
+@app.get("/temperature-ranges", response_model=UserTemperatureRangeResponse)
 async def get_temperature_ranges(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get temperature ranges from database or fallback to YAML config"""
-    import yaml
+    """Get user-specific temperature ranges"""
+    user_ranges = db.query(UserTemperatureRange).filter(
+        UserTemperatureRange.user_id == current_user.id
+    ).first()
     
-    # Try to get from database first
-    ranges = {}
-    config_params = db.query(Configuration).filter(
-        Configuration.parameter.like('temperature_%')
-    ).all()
-    
-    for param in config_params:
-        ranges[param.parameter] = float(param.value)
-    
-    # If no database config, load from YAML
-    if not ranges:
-        try:
-            with open('pricing_config.yaml', 'r') as f:
-                config = yaml.safe_load(f)
-                ranges = config.get('temperature_ranges', {
-                    'refrigerated_min': -18,
-                    'refrigerated_max': 4,
-                    'frozen_min': -25,
-                    'frozen_max': -18,
-                    'ambient_min': 15,
-                    'ambient_max': 25
-                })
-        except:
-            ranges = {
-                'refrigerated_min': -18,
-                'refrigerated_max': 4,
-                'frozen_min': -25,
-                'frozen_max': -18,
-                'ambient_min': 15,
-                'ambient_max': 25
-            }
+    # Create default ranges if none exist
+    if not user_ranges:
+        user_ranges = UserTemperatureRange(
+            user_id=current_user.id,
+            organization_id=current_user.organization_id
+        )
+        db.add(user_ranges)
+        db.commit()
+        db.refresh(user_ranges)
     
     log_usage(db, current_user.id, current_user.organization_id, "data_query")
-    return ranges
+    return user_ranges
 
-@app.put("/temperature-ranges")
+@app.put("/temperature-ranges", response_model=UserTemperatureRangeResponse)
 async def update_temperature_ranges(
-    ranges: dict,
-    current_user: User = Depends(require_admin),
+    ranges: UserTemperatureRangeCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update temperature ranges in database"""
-    for param_name, value in ranges.items():
-        if param_name.startswith('temperature_'):
-            existing = db.query(Configuration).filter(
-                Configuration.parameter == param_name
-            ).first()
-            
-            if existing:
-                existing.value = str(value)
-                existing.updated_at = datetime.utcnow()
-            else:
-                new_param = Configuration(
-                    parameter=param_name,
-                    value=str(value)
-                )
-                db.add(new_param)
+    """Update user-specific temperature ranges"""
+    user_ranges = db.query(UserTemperatureRange).filter(
+        UserTemperatureRange.user_id == current_user.id
+    ).first()
+    
+    if not user_ranges:
+        user_ranges = UserTemperatureRange(
+            user_id=current_user.id,
+            organization_id=current_user.organization_id,
+            **ranges.dict()
+        )
+        db.add(user_ranges)
+    else:
+        for field, value in ranges.dict(exclude_unset=True).items():
+            setattr(user_ranges, field, value)
+        user_ranges.updated_at = datetime.utcnow()
     
     db.commit()
+    db.refresh(user_ranges)
+    
     log_usage(db, current_user.id, current_user.organization_id, "config_update")
-    return {"message": "Temperature ranges updated successfully"}
+    return user_ranges
 
 # Incident Management
 @app.post("/incidents", response_model=IncidentResponse)

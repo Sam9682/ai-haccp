@@ -130,6 +130,12 @@ export default function Configuration() {
                   </Grid>
                 ))}
               </Grid>
+              
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                  Note: These are your personal temperature limits. Each user can set their own ranges.
+                </Typography>
+              </Box>
             </CardContent>
           </Card>
         </Grid>

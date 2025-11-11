@@ -47,10 +47,19 @@ export default function Dashboard() {
         api.get('/usage-report')
       ]);
 
+      // Try to get incidents, but don't fail if endpoint doesn't exist
+      let incidentsCount = 0;
+      try {
+        const incidents = await api.get('/incidents');
+        incidentsCount = incidents.data.filter(i => i.status === 'open').length;
+      } catch (error) {
+        console.log('Incidents endpoint not available yet');
+      }
+
       setStats({
         temperatureLogs: tempLogs.data.length,
         products: products.data.length,
-        incidents: 0, // Placeholder
+        incidents: incidentsCount,
         monthlyCost: usageReport.data.monthly_cost
       });
 
