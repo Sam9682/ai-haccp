@@ -13,6 +13,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('userData');
     if (token) {
       // Check if token is expired
       try {
@@ -22,15 +23,18 @@ export function AuthProvider({ children }) {
         if (payload.exp > currentTime) {
           // Token is still valid
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          setUser({ token });
+          const parsedUserData = userData ? JSON.parse(userData) : {};
+          setUser({ ...parsedUserData, token });
         } else {
           // Token is expired, remove it
           localStorage.removeItem('token');
+          localStorage.removeItem('userData');
           delete api.defaults.headers.common['Authorization'];
         }
       } catch (error) {
         // Invalid token format, remove it
         localStorage.removeItem('token');
+        localStorage.removeItem('userData');
         delete api.defaults.headers.common['Authorization'];
       }
     }
@@ -43,6 +47,7 @@ export function AuthProvider({ children }) {
       const { access_token, user: userData } = response.data;
       
       localStorage.setItem('token', access_token);
+      localStorage.setItem('userData', JSON.stringify(userData));
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser({ ...userData, token: access_token });
       
@@ -54,6 +59,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userData');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
   };

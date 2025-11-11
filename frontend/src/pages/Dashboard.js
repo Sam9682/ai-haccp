@@ -14,12 +14,14 @@ import {
   TrendingUp
 } from '@mui/icons-material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations/translations';
 import api from '../services/api';
 
 export default function Dashboard() {
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     temperatureLogs: 0,
     products: 0,
@@ -71,8 +73,18 @@ export default function Dashboard() {
     }
   };
 
-  const StatCard = ({ title, value, icon, color = 'primary' }) => (
-    <Card>
+  const StatCard = ({ title, value, icon, color = 'primary', onClick }) => (
+    <Card 
+      sx={{ 
+        cursor: onClick ? 'pointer' : 'default',
+        '&:hover': onClick ? { 
+          transform: 'translateY(-2px)',
+          boxShadow: 3,
+          transition: 'all 0.2s ease-in-out'
+        } : {}
+      }}
+      onClick={onClick}
+    >
       <CardContent>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box>
@@ -108,6 +120,7 @@ export default function Dashboard() {
             value={stats.temperatureLogs}
             icon={<Thermostat fontSize="large" />}
             color="primary"
+            onClick={() => navigate('/temperature-logs')}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -116,6 +129,7 @@ export default function Dashboard() {
             value={stats.products}
             icon={<Inventory fontSize="large" />}
             color="success"
+            onClick={() => navigate('/products')}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -132,6 +146,7 @@ export default function Dashboard() {
             value={`$${stats.monthlyCost.toFixed(4)}`}
             icon={<TrendingUp fontSize="large" />}
             color="info"
+            onClick={() => navigate('/usage-report')}
           />
         </Grid>
 

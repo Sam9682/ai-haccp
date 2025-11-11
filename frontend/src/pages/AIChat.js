@@ -38,80 +38,115 @@ export default function AIChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Simple NLP processor for command parsing
+  const parseCommand = (input) => {
+    const tokens = input.toLowerCase().split(/\s+/);
+    const numbers = input.match(/-?\d+\.?\d*/g) || [];
+    
+    return {
+      tokens,
+      numbers: numbers.map(n => parseFloat(n)),
+      hasTemperature: /temperature|temp|degre|degree|°/.test(input),
+      hasAdd: /add|create|new|ajouter/.test(input),
+      hasLocation: /fridge|freezer|cooler|kitchen|room|frigo|congélateur/.test(input),
+      locations: input.match(/(?:fridge\d*|freezer\d*|cooler\d*|kitchen\d*|room\d*|frigo\d*|congélateur\d*)/gi) || [],
+      intent: classifyIntent(input)
+    };
+  };
+
+  const classifyIntent = (input) => {
+    const patterns = {
+      temperature: /(?:add|log|record|note|ajouter).*(?:temperature|temp|degre)/i,
+      product: /(?:add|create|new|ajouter).*product/i,
+      clean: /clean.*room|nettoyer/i,
+      status: /status|compliance|how.*doing|statut/i,
+      list: /(?:list|show|lister).*products/i,
+      cost: /cost|usage|report|coût/i
+    };
+    
+    for (const [intent, pattern] of Object.entries(patterns)) {
+      if (pattern.test(input)) return intent;
+    }
+    return 'unknown';
+  };
+
   const processAICommand = async (userInput) => {
-    const input = userInput.toLowerCase();
+    const parsed = parseCommand(userInput);
     const isFrench = language === 'fr';
     
-    // Temperature logging (support both languages)
-    const tempKeywords = isFrench ? ['température', 'enregistrer', 'noter'] : ['temperature', 'log', 'record'];
-    if (tempKeywords.some(keyword => input.includes(keyword))) {
-      const tempMatch = input.match(/(-?\d+\.?\d*)\s*(?:degrees?|°|celsius|c)/i);
-      const locationMatch = input.match(/(?:in|at|for)\s+([^,.\n]+?)(?:\s+(?:is|was|temperature)|\s*$)/i);
+    // Enhanced temperature logging with NLP
+    if (parsed.intent === 'temperature' || parsed.hasTemperature) {
+      const temperature = parsed.numbers[0];
+      let location = parsed.locations[0] || 'unknown location';
       
-      if (tempMatch && locationMatch) {
+      // Extract location from natural language
+      const locationPatterns = [
+        /(?:of|in|at|for|du|de|dans)\s+([^\s]+(?:\d+)?)/i,
+        /(fridge\d*|freezer\d*|cooler\d*|frigo\d*|congélateur\d*)/i
+      ];
+      
+      for (const pattern of locationPatterns) {
+        const match = userInput.match(pattern);
+        if (match) {
+          location = match[1] || match[0];
+          break;
+        }
+      }
+      
+      if (temperature !== undefined && location !== 'unknown location') {
         try {
           const result = await api.post('/temperature-logs', {
-            location: locationMatch[1].trim(),
-            temperature: parseFloat(tempMatch[1]),
-            is_within_limits: parseFloat(tempMatch[1]) >= -18 && parseFloat(tempMatch[1]) <= 4
+            location: location.trim(),
+            temperature: temperature,
+            is_within_limits: temperature >= -18 && temperature <= 4
           });
           
           const status = result.is_within_limits ? `✅ ${t('normal', language)}` : `⚠️ ${t('alert', language)}`;
           return isFrench ? 
-            `Température enregistrée avec succès:\n• Emplacement: ${result.location}\n• Température: ${result.temperature}°C\n• Statut: ${status}` :
-            `Temperature logged successfully:\n• Location: ${result.location}\n• Temperature: ${result.temperature}°C\n• Status: ${status}`;
+            `🌡️ Température enregistrée:\n• ${result.location}: ${result.temperature}°C\n• Statut: ${status}` :
+            `🌡️ Temperature logged:\n• ${result.location}: ${result.temperature}°C\n• Status: ${status}`;
         } catch (error) {
-          return '❌ Failed to log temperature. Please check your input.';
+          return '❌ Failed to log temperature.';
         }
       }
-      return 'Please specify both temperature and location. Example: "Log temperature of 3 degrees in walk-in cooler"';
+      return isFrench ? 
+        'Veuillez spécifier la température et l\'emplacement. Ex: "ajouter température de frigo1 à 10 degrés"' :
+        'Please specify temperature and location. Ex: "add temperature of fridge1 to 10 degrees"';
     }
 
-    // Product management
-    if (input.includes('add product') || input.includes('new product')) {
-      const nameMatch = input.match(/(?:add product|new product)\s+([^,.\n]+?)(?:\s+with|\s*$)/i);
+    // Enhanced product management
+    if (parsed.intent === 'product') {
+      const nameMatch = userInput.match(/(?:add|create|new|ajouter)\s+(?:product\s+)?([^,.\n]+?)(?:\s+with|\s*$)/i);
       if (nameMatch) {
         try {
-          const allergenMatch = input.match(/allergen[s]?\s*:?\s*([^,.\n]+)/i);
-          const categoryMatch = input.match(/category\s*:?\s*([^,.\n]+)/i);
-          
           const productData = { name: nameMatch[1].trim() };
-          if (allergenMatch) {
-            productData.allergens = allergenMatch[1].split(',').map(a => a.trim());
-          }
-          if (categoryMatch) {
-            productData.category = categoryMatch[1].trim();
-          }
-          
           const result = await api.post('/products', productData);
-          return `✅ Product "${result.name}" added successfully to the system.`;
+          return `✅ Product "${result.name}" added successfully.`;
         } catch (error) {
-          return '❌ Failed to add product. Please try again.';
+          return '❌ Failed to add product.';
         }
       }
-      return 'Please specify the product name. Example: "Add product Fresh Salmon with fish allergens"';
     }
 
-    // Room cleaning
-    if (input.includes('clean') && input.includes('room')) {
-      const roomMatch = input.match(/(?:clean|cleaned)\s+(?:room\s+)?([^,.\n]+?)(?:\s+room|\s*$)/i);
+    // Enhanced room cleaning
+    if (parsed.intent === 'clean') {
+      const roomMatch = userInput.match(/(?:clean|cleaned|nettoyer)\s+(?:room\s+)?([^,.\n]+?)(?:\s+room|\s*$)/i);
       if (roomMatch) {
         try {
           const result = await api.post('/room-cleaning', {
             room_name: roomMatch[1].trim(),
-            cleaning_plan_id: 1, // Default to first plan
+            cleaning_plan_id: 1,
             notes: 'Cleaned via AI chat'
           });
-          return `✅ Room "${result.room_name}" marked as cleaned successfully.`;
+          return `🧹 Room "${result.room_name}" marked as cleaned.`;
         } catch (error) {
-          return '❌ Failed to mark room as cleaned. Please check the room name.';
+          return '❌ Failed to mark room as cleaned.';
         }
       }
-      return 'Please specify the room name. Example: "Clean kitchen room"';
     }
 
-    // Compliance status
-    if (input.includes('status') || input.includes('compliance') || input.includes('how are we doing')) {
+    // Enhanced status checking
+    if (parsed.intent === 'status') {
       try {
         const [tempLogs, usageReport] = await Promise.all([
           api.get('/temperature-logs'),
@@ -121,51 +156,58 @@ export default function AIChat() {
         const recentAlerts = tempLogs.filter(log => !log.is_within_limits).length;
         const status = recentAlerts === 0 ? '🟢 Compliant' : '🟡 Attention Required';
         
-        return `HACCP Compliance Status: ${status}\n\n• Temperature Alerts: ${recentAlerts}\n• Monthly Cost: $${usageReport.monthly_cost.toFixed(4)}\n• Recent Logs: ${tempLogs.length}\n\n${recentAlerts > 0 ? '⚠️ Please address temperature alerts' : '✅ All systems normal'}`;
+        return `📊 HACCP Status: ${status}\n\n• Alerts: ${recentAlerts}\n• Cost: $${usageReport.monthly_cost.toFixed(4)}\n• Logs: ${tempLogs.length}\n\n${recentAlerts > 0 ? '⚠️ Address alerts' : '✅ All normal'}`;
       } catch (error) {
-        return '❌ Failed to get compliance status.';
+        return '❌ Failed to get status.';
       }
     }
 
-    // List products
-    if (input.includes('list products') || input.includes('show products') || input.includes('what products')) {
+    // Enhanced product listing
+    if (parsed.intent === 'list') {
       try {
         const products = await api.get('/products');
-        if (products.length === 0) {
-          return 'No products found in the system.';
-        }
+        if (products.length === 0) return 'No products found.';
         
-        let response = 'Products in System:\n\n';
-        products.forEach(product => {
+        let response = '📦 Products:\n\n';
+        products.slice(0, 10).forEach(product => {
           response += `• ${product.name}`;
           if (product.category) response += ` (${product.category})`;
-          if (product.allergens && product.allergens.length > 0) {
-            response += ` - Allergens: ${product.allergens.join(', ')}`;
-          }
+          if (product.allergens?.length) response += ` ⚠️ ${product.allergens.join(', ')}`;
           response += '\n';
         });
+        if (products.length > 10) response += `\n... and ${products.length - 10} more`;
         return response;
       } catch (error) {
         return '❌ Failed to fetch products.';
       }
     }
 
-    // Usage report
-    if (input.includes('cost') || input.includes('usage') || input.includes('report')) {
+    // Enhanced usage reporting
+    if (parsed.intent === 'cost') {
       try {
         const report = await api.get('/usage-report');
-        return `Platform Usage Report:\n\n• Total Cost: $${report.total_cost.toFixed(4)}\n• Monthly Cost: $${report.monthly_cost.toFixed(4)}\n• Serverless Savings: ~85% vs traditional hosting\n\n💡 Pay-per-use model keeps costs low!`;
+        return `💰 Usage Report:\n\n• Total: $${report.total_cost.toFixed(4)}\n• Monthly: $${report.monthly_cost.toFixed(4)}\n• Savings: ~85%\n\n💡 Serverless efficiency!`;
       } catch (error) {
-        return '❌ Failed to get usage report.';
+        return '❌ Failed to get report.';
       }
     }
 
-    // Help
-    if (input.includes('help') || input.includes('what can you do')) {
-      return `I can help you with these HACCP tasks:\n\n🌡️ **Temperature Logging**\n"Log temperature of 3 degrees in walk-in cooler"\n\n🥘 **Product Management**\n"Add product Fresh Tuna with fish allergens"\n"List all products"\n\n🧹 **Cleaning Management**\n"Clean kitchen room"\n"Mark prep area as cleaned"\n\n📊 **Status & Reports**\n"What's our compliance status?"\n"Show usage report"\n\n❗ **Incident Reporting**\n"Report temperature incident in freezer"\n\nJust tell me what you need in natural language!`;
+    // Help and fallback
+    if (/help|aide|what.*do/i.test(userInput)) {
+      return isFrench ?
+        `🤖 Commandes disponibles:\n\n🌡️ "ajouter température de frigo1 à 10 degrés"\n🥘 "ajouter produit saumon frais"\n🧹 "nettoyer cuisine"\n📊 "statut de conformité"\n📦 "lister les produits"\n💰 "rapport d'utilisation"` :
+        `🤖 Available commands:\n\n🌡️ "add temperature of fridge1 to 10 degrees"\n🥘 "add product fresh salmon"\n🧹 "clean kitchen room"\n📊 "compliance status"\n📦 "list products"\n💰 "usage report"`;
     }
 
-    return `I understand you want to: "${userInput}"\n\nI can help with temperature logging, product management, room cleaning, and status reports. Could you be more specific? Type "help" for examples.`;
+    // Smart fallback with intent recognition
+    const suggestions = {
+      temperature: 'Try: "add temperature of [location] to [number] degrees"',
+      product: 'Try: "add product [name]"',
+      clean: 'Try: "clean [room name]"',
+      unknown: 'I can help with temperatures, products, cleaning, and reports. Say "help" for examples.'
+    };
+    
+    return `🤔 ${suggestions[parsed.intent] || suggestions.unknown}`;
   };
 
   const handleSend = async () => {

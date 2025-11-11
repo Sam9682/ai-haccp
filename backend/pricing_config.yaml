@@ -11,3 +11,11 @@ pricing:
   audit_create: 0.001
   batch_create: 0.001
   batch_update: 0.001
+
+temperature_ranges:
+  refrigerated_min: -18
+  refrigerated_max: 4
+  frozen_min: -25
+  frozen_max: -18
+  ambient_min: 15
+  ambient_max: 25

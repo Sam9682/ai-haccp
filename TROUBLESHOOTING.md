@@ -290,7 +290,7 @@ docker-compose up -d
 
 ### Contact Support
 - **Email**: support@ai-haccp.com
-- **Emergency Food Safety**: 1-800-HACCP-HELP
+- **Emergency Food Safety**: 0033619899050
 - **Platform Status**: status.ai-haccp.com
 
 ### Before Contacting Support

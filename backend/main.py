@@ -117,7 +117,18 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     )
     
     log_usage(db, user.id, user.organization_id, "login")
-    return {"access_token": access_token, "token_type": "bearer", "user": user}
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "role": user.role,
+            "organization_id": user.organization_id,
+            "is_active": user.is_active
+        }
+    }
 
 @app.post("/organizations", response_model=OrganizationResponse)
 async def create_organization(org: OrganizationCreate, db: Session = Depends(get_db)):
@@ -523,6 +534,110 @@ async def analyze_reception_image(
         return result
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+def require_admin(current_user: User = Depends(get_current_user)):
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+@app.get("/configuration", response_model=List[ConfigurationResponse])
+async def get_configuration_parameters(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    parameters = db.query(Configuration).all()
+    log_usage(db, current_user.id, current_user.organization_id, "config_query")
+    return parameters
+
+@app.put("/configuration/{param_id}", response_model=ConfigurationResponse)
+async def update_configuration_parameter(
+    param_id: int,
+    config_update: ConfigurationUpdate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    parameter = db.query(Configuration).filter(Configuration.id == param_id).first()
+    if not parameter:
+        raise HTTPException(status_code=404, detail="Configuration parameter not found")
+    
+    parameter.value = config_update.value
+    parameter.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(parameter)
+    
+    log_usage(db, current_user.id, current_user.organization_id, "config_update")
+    return parameter
+
+@app.get("/temperature-ranges")
+async def get_temperature_ranges(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get temperature ranges from database or fallback to YAML config"""
+    import yaml
+    
+    # Try to get from database first
+    ranges = {}
+    config_params = db.query(Configuration).filter(
+        Configuration.parameter.like('temperature_%')
+    ).all()
+    
+    for param in config_params:
+        ranges[param.parameter] = float(param.value)
+    
+    # If no database config, load from YAML
+    if not ranges:
+        try:
+            with open('pricing_config.yaml', 'r') as f:
+                config = yaml.safe_load(f)
+                ranges = config.get('temperature_ranges', {
+                    'refrigerated_min': -18,
+                    'refrigerated_max': 4,
+                    'frozen_min': -25,
+                    'frozen_max': -18,
+                    'ambient_min': 15,
+                    'ambient_max': 25
+                })
+        except:
+            ranges = {
+                'refrigerated_min': -18,
+                'refrigerated_max': 4,
+                'frozen_min': -25,
+                'frozen_max': -18,
+                'ambient_min': 15,
+                'ambient_max': 25
+            }
+    
+    log_usage(db, current_user.id, current_user.organization_id, "data_query")
+    return ranges
+
+@app.put("/temperature-ranges")
+async def update_temperature_ranges(
+    ranges: dict,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Update temperature ranges in database"""
+    for param_name, value in ranges.items():
+        if param_name.startswith('temperature_'):
+            existing = db.query(Configuration).filter(
+                Configuration.parameter == param_name
+            ).first()
+            
+            if existing:
+                existing.value = str(value)
+                existing.updated_at = datetime.utcnow()
+            else:
+                new_param = Configuration(
+                    parameter=param_name,
+                    value=str(value)
+                )
+                db.add(new_param)
+    
+    db.commit()
+    log_usage(db, current_user.id, current_user.organization_id, "config_update")
+    return {"message": "Temperature ranges updated successfully"}
 
 @app.get("/health")
 async def health_check():

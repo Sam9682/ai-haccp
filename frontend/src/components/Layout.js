@@ -24,6 +24,7 @@ import {
   SmartToy as AIIcon,
   LocalShipping as ReceptionIcon,
   Help as HelpIcon,
+  Settings as SettingsIcon,
   Logout as LogoutIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -51,6 +52,7 @@ export default function Layout({ children }) {
     { text: t('cleaningPlan', language), icon: <CleaningIcon />, path: '/cleaning-plan' },
     { text: t('aiChat', language), icon: <AIIcon />, path: '/ai-chat' },
     { text: t('usageReport', language), icon: <AssessmentIcon />, path: '/usage-report' },
+    ...(user?.role === 'admin' ? [{ text: t('configuration', language), icon: <SettingsIcon />, path: '/configuration' }] : []),
     { text: t('help', language), icon: <HelpIcon />, path: '/help' },
   ];
 
@@ -111,9 +113,11 @@ export default function Layout({ children }) {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Food Safety Management
           </Typography>
-          <Typography variant="body2" sx={{ mr: 2 }}>
-            {user?.name}
-          </Typography>
+          {user?.name && (
+            <Typography variant="body2" sx={{ mr: 2, color: 'white' }}>
+              ({user.email})
+            </Typography>
+          )}
           <LanguageSwitcher />
           <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>
             {t('logout', language)}

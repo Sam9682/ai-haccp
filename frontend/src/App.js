@@ -11,6 +11,7 @@ import CleaningPlan from './pages/CleaningPlan';
 import AIChat from './pages/AIChat';
 import Help from './pages/Help';
 import MaterialReception from './pages/MaterialReception';
+import Configuration from './pages/Configuration';
 import Layout from './components/Layout';
 import { AuthProvider, useAuth } from './services/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -98,6 +99,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <MaterialReception />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/configuration" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Configuration />
                 </Layout>
               </ProtectedRoute>
             } />

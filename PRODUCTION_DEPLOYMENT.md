@@ -356,4 +356,4 @@ docker-compose -f docker-compose.prod.yml start frontend api
 
 ### Emergency Contacts
 - **Technical Support**: admin@swautomorph.com
-- **Emergency Hotline**: 1-800-HACCP-HELP
+- **Emergency Hotline**: 0033619899050

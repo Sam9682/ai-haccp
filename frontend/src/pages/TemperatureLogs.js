@@ -32,6 +32,14 @@ export default function TemperatureLogs() {
   const [editingLog, setEditingLog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tempRange, setTempRange] = useState({ min: -18, max: 4 });
+  const [tempSettings, setTempSettings] = useState({
+    refrigerated_min: -18,
+    refrigerated_max: 4,
+    frozen_min: -25,
+    frozen_max: -18,
+    ambient_min: 15,
+    ambient_max: 25
+  });
   
   console.log('TemperatureLogs component rendered, open:', open);
   
@@ -47,6 +55,7 @@ export default function TemperatureLogs() {
 
   useEffect(() => {
     fetchLogs();
+    fetchTempRanges();
   }, []);
 
   const fetchLogs = async () => {
@@ -57,6 +66,19 @@ export default function TemperatureLogs() {
       console.error('Error fetching temperature logs:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTempRanges = async () => {
+    try {
+      const response = await api.get('/temperature-ranges');
+      setTempSettings(response.data);
+      setTempRange({
+        min: response.data.refrigerated_min,
+        max: response.data.refrigerated_max
+      });
+    } catch (error) {
+      console.error('Error fetching temperature ranges:', error);
     }
   };
 
@@ -100,9 +122,19 @@ export default function TemperatureLogs() {
     }
   };
 
-  const handleSettingsSubmit = (e) => {
+  const handleSettingsSubmit = async (e) => {
     e.preventDefault();
-    setSettingsOpen(false);
+    try {
+      await api.put('/temperature-ranges', tempSettings);
+      setTempRange({
+        min: tempSettings.refrigerated_min,
+        max: tempSettings.refrigerated_max
+      });
+      setSettingsOpen(false);
+    } catch (error) {
+      console.error('Error updating temperature ranges:', error);
+      alert('Error updating settings: ' + (error.response?.data?.detail || error.message));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -315,31 +347,63 @@ export default function TemperatureLogs() {
         <form onSubmit={handleSettingsSubmit}>
           <DialogTitle>Temperature Range Settings</DialogTitle>
           <DialogContent>
-            <TextField
-              margin="dense"
-              label="Minimum Temperature (°C)"
-              type="number"
-              fullWidth
-              variant="outlined"
-              value={tempRange.min}
-              onChange={(e) => setTempRange({ ...tempRange, min: parseFloat(e.target.value) })}
-              required
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              margin="dense"
-              label="Maximum Temperature (°C)"
-              type="number"
-              fullWidth
-              variant="outlined"
-              value={tempRange.max}
-              onChange={(e) => setTempRange({ ...tempRange, max: parseFloat(e.target.value) })}
-              required
-            />
+            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Refrigerated</Typography>
+            <Box display="flex" gap={2}>
+              <TextField
+                label="Min (°C)"
+                type="number"
+                value={tempSettings.refrigerated_min}
+                onChange={(e) => setTempSettings({ ...tempSettings, refrigerated_min: parseFloat(e.target.value) })}
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="Max (°C)"
+                type="number"
+                value={tempSettings.refrigerated_max}
+                onChange={(e) => setTempSettings({ ...tempSettings, refrigerated_max: parseFloat(e.target.value) })}
+                sx={{ flex: 1 }}
+              />
+            </Box>
+            
+            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Frozen</Typography>
+            <Box display="flex" gap={2}>
+              <TextField
+                label="Min (°C)"
+                type="number"
+                value={tempSettings.frozen_min}
+                onChange={(e) => setTempSettings({ ...tempSettings, frozen_min: parseFloat(e.target.value) })}
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="Max (°C)"
+                type="number"
+                value={tempSettings.frozen_max}
+                onChange={(e) => setTempSettings({ ...tempSettings, frozen_max: parseFloat(e.target.value) })}
+                sx={{ flex: 1 }}
+              />
+            </Box>
+            
+            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Ambient</Typography>
+            <Box display="flex" gap={2}>
+              <TextField
+                label="Min (°C)"
+                type="number"
+                value={tempSettings.ambient_min}
+                onChange={(e) => setTempSettings({ ...tempSettings, ambient_min: parseFloat(e.target.value) })}
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="Max (°C)"
+                type="number"
+                value={tempSettings.ambient_max}
+                onChange={(e) => setTempSettings({ ...tempSettings, ambient_max: parseFloat(e.target.value) })}
+                sx={{ flex: 1 }}
+              />
+            </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setSettingsOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">Save</Button>
+            <Button onClick={() => setSettingsOpen(false)}>{t('cancel', language)}</Button>
+            <Button type="submit" variant="contained">Save Settings</Button>
           </DialogActions>
         </form>
       </Dialog>

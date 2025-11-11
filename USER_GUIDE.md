@@ -398,7 +398,7 @@ Connect with AI assistants like Claude:
 
 ### Emergency Contacts
 - **Technical Support**: support@ai-haccp.com
-- **Food Safety Hotline**: 1-800-HACCP-HELP
+- **Food Safety Hotline**: 0033619899050
 - **Platform Status**: status.ai-haccp.com
 
 ### Remember

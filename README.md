@@ -210,7 +210,7 @@ This project is licensed under the MIT License.
 
 ### 📞 Support
 - **Email**: support@ai-haccp.com
-- **Emergency Food Safety**: 1-800-HACCP-HELP
+- **Emergency Food Safety**: 0033619899050
 - **Platform Status**: status.ai-haccp.com
 - **GitHub Issues**: Create an issue for bugs or feature requests
 

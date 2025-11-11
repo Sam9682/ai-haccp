@@ -9,6 +9,7 @@ export const translations = {
     aiChat: 'AI Chat',
     usageReport: 'Usage Report',
     help: 'Help',
+    configuration: 'Configuration',
     logout: 'Logout',
     
     // Login
@@ -156,6 +157,7 @@ export const translations = {
     aiChat: 'Chat IA',
     usageReport: 'Rapport d\'utilisation',
     help: 'Aide',
+    configuration: 'Configuration',
     logout: 'Déconnexion',
     
     // Login

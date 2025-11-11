@@ -175,3 +175,17 @@ class MaterialReceptionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ConfigurationUpdate(BaseModel):
+    value: str
+
+class ConfigurationResponse(BaseModel):
+    id: int
+    parameter: str
+    value: str
+    parent_parameter: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
