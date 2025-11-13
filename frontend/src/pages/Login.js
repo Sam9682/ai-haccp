@@ -6,28 +6,41 @@ import {
   Button,
   Typography,
   Box,
-  Alert
+  Alert,
+  Divider,
+  Chip
 } from '@mui/material';
 import { useAuth } from '../services/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations/translations';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, user } = useAuth();
+  const [ssoLoading, setSsoLoading] = useState(false);
+  const { login, ssoLogin, user } = useAuth();
   const { language } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (user) {
       navigate('/');
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    // Check for SSO token in URL
+    const urlParams = new URLSearchParams(location.search);
+    const ssoToken = urlParams.get('sso_token');
+    if (ssoToken) {
+      handleSsoLogin(ssoToken);
+    }
+  }, [location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,6 +56,25 @@ export default function Login() {
     }
     
     setLoading(false);
+  };
+
+  const handleSsoLogin = async (ssoToken) => {
+    setSsoLoading(true);
+    setError('');
+
+    const result = await ssoLogin(ssoToken);
+    
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.error);
+    }
+    
+    setSsoLoading(false);
+  };
+
+  const redirectToSso = () => {
+    window.location.href = 'http://ai-swautomorph.swautomorph.com:5002';
   };
 
   return (
@@ -98,14 +130,35 @@ export default function Login() {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled={loading}
+              disabled={loading || ssoLoading}
             >
               {loading ? t('signingIn', language) : t('signIn', language)}
             </Button>
           </Box>
           
+          <Box sx={{ my: 2 }}>
+            <Divider>
+              <Chip label="OR" size="small" />
+            </Divider>
+          </Box>
+          
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={redirectToSso}
+            disabled={loading || ssoLoading}
+            sx={{ mb: 2 }}
+          >
+            {ssoLoading ? 'Authenticating...' : 'Login with SSO'}
+          </Button>
+          
           <Typography variant="body2" color="textSecondary" align="center" sx={{ mt: 2 }}>
             {t('demo', language)}
+          </Typography>
+          
+          <Typography variant="caption" color="textSecondary" align="center" display="block" sx={{ mt: 1 }}>
+            Direct login: admin@ai-automorph.com / password<br/>
+            SSO: Use ai-swautomorph.com credentials
           </Typography>
         </Paper>
       </Box>

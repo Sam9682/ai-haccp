@@ -57,6 +57,22 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const ssoLogin = async (ssoToken) => {
+    try {
+      const response = await api.post('/auth/sso', { sso_token: ssoToken });
+      const { access_token, user: userData } = response.data;
+      
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('userData', JSON.stringify(userData));
+      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      setUser({ ...userData, token: access_token });
+      
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'SSO login failed' };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
@@ -67,6 +83,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     login,
+    ssoLogin,
     logout,
     loading
   };

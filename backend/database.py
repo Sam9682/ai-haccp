@@ -41,9 +41,10 @@ def init_database():
             
             demo_sql = f"""
             INSERT INTO organizations (name, type) VALUES ('Demo Restaurant', 'restaurant');
+            INSERT INTO organizations (name, type) VALUES ('SSO Users', 'restaurant');
             
             INSERT INTO users (email, password_hash, name, role, organization_id) VALUES 
-            ('admin@ai-automorph.com', '{hashed_password}', 'Demo Admin', 'admin', 1);
+            ('admin@ai-automorph.com', '{hashed_password}', 'Admin User', 'admin', 1);
             
             INSERT INTO products (organization_id, name, category, allergens, shelf_life_days, storage_temp_min, storage_temp_max) VALUES 
             (1, 'Fresh Chicken Breast', 'Meat', '[]', 3, 0, 4),
@@ -57,6 +58,32 @@ def init_database():
             
             db.commit()
             logger.info("Demo data inserted successfully")
+        else:
+            # Ensure admin user exists even if organizations exist
+            admin_exists = db.execute(text("SELECT COUNT(*) FROM users WHERE email = 'admin@ai-automorph.com'")).fetchone()
+            if admin_exists[0] == 0:
+                import hashlib
+                password = "password"
+                hashed_password = hashlib.sha256(password.encode()).hexdigest()
+                
+                # Ensure Demo Restaurant organization exists
+                org_exists = db.execute(text("SELECT id FROM organizations WHERE name = 'Demo Restaurant'")).fetchone()
+                if not org_exists:
+                    db.execute(text("INSERT INTO organizations (name, type) VALUES ('Demo Restaurant', 'restaurant')"))
+                    db.commit()
+                    org_exists = db.execute(text("SELECT id FROM organizations WHERE name = 'Demo Restaurant'")).fetchone()
+                
+                org_id = org_exists[0]
+                db.execute(text(f"INSERT INTO users (email, password_hash, name, role, organization_id) VALUES ('admin@ai-automorph.com', '{hashed_password}', 'Admin User', 'admin', {org_id})"))
+                db.commit()
+                logger.info("Admin user created")
+        
+        # Ensure SSO Users organization exists
+        sso_org_exists = db.execute(text("SELECT COUNT(*) FROM organizations WHERE name = 'SSO Users'")).fetchone()
+        if sso_org_exists[0] == 0:
+            db.execute(text("INSERT INTO organizations (name, type) VALUES ('SSO Users', 'restaurant')"))
+            db.commit()
+            logger.info("SSO Users organization created")
         
         db.close()
         

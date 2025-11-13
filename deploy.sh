@@ -275,6 +275,13 @@ stop_services() {
     log_info "Services stopped successfully ✅"
 }
 
+# Restart services
+restart_services() {
+    log_info "Restarting AI-HACCP services..."
+    docker-compose -f docker-compose.prod.yml restart
+    log_info "Services restarted successfully ✅"
+}
+
 # Check service status
 check_status() {
     log_info "Checking AI-HACCP service status..."
@@ -307,26 +314,31 @@ case "${1:-help}" in
     "stop")
         stop_services
         ;;
+    "restart")
+        restart_services
+        ;;
     "status")
         check_status
         ;;
     "help")
-        echo "Usage: $0 [start|ssl|backup|verify|stop|status|help]"
+        echo "Usage: $0 [start|ssl|backup|verify|stop|restart|status|help]"
         echo "  start   - Full production deployment"
         echo "  ssl     - Setup SSL certificates only"
         echo "  backup  - Create database backup"
         echo "  verify  - Verify deployment status"
         echo "  stop    - Stop all services"
+        echo "  restart - Restart all services"
         echo "  status  - Check service status"
         echo "  help    - Show this help message (default)"
         ;;
     *)
-        echo "Usage: $0 [start|ssl|backup|verify|stop|status|help]"
+        echo "Usage: $0 [start|ssl|backup|verify|stop|restart|status|help]"
         echo "  start   - Full production deployment"
         echo "  ssl     - Setup SSL certificates only"
         echo "  backup  - Create database backup"
         echo "  verify  - Verify deployment status"
         echo "  stop    - Stop all services"
+        echo "  restart - Restart all services"
         echo "  status  - Check service status"
         echo "  help    - Show this help message (default)"
         exit 1

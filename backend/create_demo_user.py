@@ -5,7 +5,7 @@ Create demo user for AI-HACCP platform
 
 from database import SessionLocal, init_database
 from models import User, Organization
-from passlib.context import CryptContext
+# from passlib.context import CryptContext  # Not needed for simple hash
 from sqlalchemy import text
 
 def create_demo_user():
@@ -13,7 +13,7 @@ def create_demo_user():
     init_database()
     
     db = SessionLocal()
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")  # Not needed
     
     try:
         # Check if organization exists
@@ -28,9 +28,10 @@ def create_demo_user():
         # Check if user exists
         user = db.query(User).filter(User.email == "admin@ai-automorph.com").first()
         if not user:
-            # Ensure password is within bcrypt limits (72 bytes)
-            password = "password"[:72]
-            hashed_password = pwd_context.hash(password)
+            # Use simple hash for demo user to avoid bcrypt issues
+            import hashlib
+            password = "password"
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
             user = User(
                 email="admin@ai-automorph.com",
                 password_hash=hashed_password,
@@ -43,14 +44,17 @@ def create_demo_user():
             print("Created demo user: admin@ai-automorph.com / password")
         else:
             # Update password to ensure it's correct
-            password = "password"[:72]
-            user.password_hash = pwd_context.hash(password)
+            import hashlib
+            password = "password"
+            user.password_hash = hashlib.sha256(password.encode()).hexdigest()
             db.commit()
             print("Updated demo user password")
         
         # Verify password
-        password = "password"[:72]
-        if pwd_context.verify(password, user.password_hash):
+        import hashlib
+        password = "password"
+        expected_hash = hashlib.sha256(password.encode()).hexdigest()
+        if expected_hash == user.password_hash:
             print("✅ Password verification successful")
         else:
             print("❌ Password verification failed")

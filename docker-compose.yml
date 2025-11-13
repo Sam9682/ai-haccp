@@ -4,7 +4,7 @@ services:
   api:
     build: ./backend
     expose:
-      - "8100"
+      - "9001"
     environment:
       DATABASE_URL: sqlite:///./ai_haccp.db
       JWT_SECRET: your-secret-key
@@ -18,7 +18,7 @@ services:
   frontend:
     build: ./frontend
     expose:
-      - "8101"
+      - "3000"
     environment:
       REACT_APP_API_URL: https://ai-haccp.swautomorph.com/api
     depends_on:

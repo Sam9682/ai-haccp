@@ -26,12 +26,15 @@ except ImportError:
 @app.on_event("startup")
 async def startup_event():
     init_database()
-    # Ensure demo user exists
-    # try:
-    #     from create_demo_user import create_demo_user
-    #     create_demo_user()
-    # except Exception as e:
-    #     print(f"Warning: Could not create demo user: {e}")
+    # Ensure admin user exists
+    db = next(get_db())
+    try:
+        ensure_admin_user(db)
+        print("Admin user ensured")
+    except Exception as e:
+        print(f"Warning: Could not ensure admin user: {e}")
+    finally:
+        db.close()
     print("Database initialized successfully")
 
 app.add_middleware(
@@ -66,39 +69,44 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+def ensure_admin_user(db: Session):
+    """Ensure admin user exists, create if not"""
+    admin_user = db.query(User).filter(User.email == "admin@ai-automorph.com").first()
+    if not admin_user:
+        from models import Organization
+        import hashlib
+        
+        # Create demo organization if it doesn't exist
+        org = db.query(Organization).filter(Organization.name == "Demo Restaurant").first()
+        if not org:
+            org = Organization(name="Demo Restaurant", type="restaurant")
+            db.add(org)
+            db.commit()
+            db.refresh(org)
+        
+        # Create admin user with simple hash
+        simple_hash = hashlib.sha256("password".encode()).hexdigest()
+        admin_user = User(
+            email="admin@ai-automorph.com",
+            password_hash=simple_hash,
+            name="Admin User",
+            role="admin",
+            organization_id=org.id
+        )
+        db.add(admin_user)
+        db.commit()
+        db.refresh(admin_user)
+
 @app.post("/auth/login")
 async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     start_time = time.time()
     
+    # Ensure admin user exists
+    ensure_admin_user(db)
+    
     user = db.query(User).filter(User.email == credentials.email).first()
     if not user:
-        # Create demo user if it doesn't exist
-        if credentials.email == "admin@ai-automorph.com" and credentials.password == "password":
-            from models import Organization
-            import hashlib
-            
-            # Create demo organization if it doesn't exist
-            org = db.query(Organization).filter(Organization.name == "Demo Restaurant").first()
-            if not org:
-                org = Organization(name="Demo Restaurant", type="restaurant")
-                db.add(org)
-                db.commit()
-                db.refresh(org)
-            
-            # Create demo user with simple hash
-            simple_hash = hashlib.sha256(credentials.password.encode()).hexdigest()
-            user = User(
-                email=credentials.email,
-                password_hash=simple_hash,
-                name="Demo Admin",
-                role="admin",
-                organization_id=org.id
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-        else:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Handle both bcrypt and simple hash (for demo user)
     password_valid = False
@@ -124,6 +132,83 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     return {
         "access_token": access_token, 
         "token_type": "bearer", 
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "role": user.role,
+            "organization_id": user.organization_id,
+            "is_active": user.is_active
+        }
+    }
+
+@app.post("/auth/sso")
+async def sso_login(sso_data: dict, db: Session = Depends(get_db)):
+    """SSO authentication endpoint"""
+    start_time = time.time()
+    
+    sso_token = sso_data.get("sso_token")
+    if not sso_token:
+        raise HTTPException(status_code=400, detail="SSO token required")
+    
+    # Validate token with SSO server
+    import requests
+    try:
+        sso_response = requests.post(
+            "http://ai-swautomorph.swautomorph.com:5002/sso/validate",
+            json={"token": sso_token},
+            timeout=5
+        )
+        
+        if sso_response.status_code != 200:
+            raise HTTPException(status_code=401, detail="Invalid SSO token")
+        
+        sso_user_data = sso_response.json()
+        if not sso_user_data.get("valid"):
+            raise HTTPException(status_code=401, detail="Invalid SSO token")
+        
+        user_info = sso_user_data.get("user")
+        if not user_info:
+            raise HTTPException(status_code=401, detail="Invalid user data")
+        
+    except requests.RequestException:
+        raise HTTPException(status_code=503, detail="SSO server unavailable")
+    
+    # Find or create user
+    user = db.query(User).filter(User.email == user_info["email"]).first()
+    if not user:
+        # Create organization if needed
+        org = db.query(Organization).filter(Organization.name == "SSO Users").first()
+        if not org:
+            org = Organization(name="SSO Users", type="restaurant")
+            db.add(org)
+            db.commit()
+            db.refresh(org)
+        
+        # Create new user from SSO data
+        user = User(
+            email=user_info["email"],
+            password_hash="sso_user",  # SSO users don't have local passwords
+            name=f"{user_info.get('first_name', '')} {user_info.get('last_name', '')}".strip() or user_info["username"],
+            role="user",
+            organization_id=org.id
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    
+    # Generate JWT token
+    access_token = jwt.encode(
+        {"sub": str(user.id), "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)},
+        SECRET_KEY, algorithm=ALGORITHM
+    )
+    
+    execution_time = time.time() - start_time
+    log_usage(db, user.id, user.organization_id, "sso_login", execution_time=execution_time)
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
         "user": {
             "id": user.id,
             "email": user.email,

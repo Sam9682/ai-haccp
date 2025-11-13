@@ -24,6 +24,7 @@ A comprehensive Food Safety Management Platform for restaurants, built with serv
 - **Mobile Responsive**: Works on smartphones and tablets
 - **API-First**: RESTful API for integrations
 - **Real-time Updates**: Live data synchronization
+- **Dual Authentication**: Direct login + SSO integration
 - **Secure Authentication**: JWT-based authentication
 
 ## Architecture
@@ -85,9 +86,10 @@ docker-compose up -d --build
 - Backend API: https://ai-haccp.swautomorph.com/api
 - API Documentation: https://ai-haccp.swautomorph.com/api/docs
 
-3. **Default Login**:
-- Email: admin@ai-automorph.com
-- Password: password
+3. **Authentication Options**:
+- **Direct Login**: admin@ai-automorph.com / password
+- **SSO Login**: Use ai-swautomorph.com credentials (click "Login with SSO")
+- See [AUTHENTICATION.md](AUTHENTICATION.md) for detailed setup
 
 ### Database Setup
 
