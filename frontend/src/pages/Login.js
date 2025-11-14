@@ -34,10 +34,13 @@ export default function Login() {
   }, [user, navigate]);
 
   useEffect(() => {
-    // Check for SSO token in URL
+    // Check for SSO token in URL (both sso_token and token parameters)
     const urlParams = new URLSearchParams(location.search);
-    const ssoToken = urlParams.get('sso_token');
+    const ssoToken = urlParams.get('sso_token') || urlParams.get('token');
+    const userParam = urlParams.get('user');
+    
     if (ssoToken) {
+      setSsoLoading(true);
       handleSsoLogin(ssoToken);
     }
   }, [location]);
@@ -59,23 +62,79 @@ export default function Login() {
   };
 
   const handleSsoLogin = async (ssoToken) => {
-    setSsoLoading(true);
     setError('');
+    console.log('Attempting SSO login with token:', ssoToken.substring(0, 20) + '...');
 
     const result = await ssoLogin(ssoToken);
     
     if (result.success) {
+      console.log('SSO login successful');
       navigate('/');
     } else {
-      setError(result.error);
+      console.error('SSO login failed:', result.error);
+      setError(`SSO Login Failed: ${result.error}`);
+      setSsoLoading(false);
+      // Clear the token from URL to allow manual login
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
-    
-    setSsoLoading(false);
   };
 
   const redirectToSso = () => {
-    window.location.href = 'http://ai-swautomorph.swautomorph.com:5002';
+    window.location.href = 'https://www.swautomorph.com/sso/auth';
   };
+
+  // Check for SSO token in URL - if present, show loading state
+  const urlParams = new URLSearchParams(location.search);
+  const hasSsoToken = urlParams.get('sso_token') || urlParams.get('token');
+
+  if (hasSsoToken && ssoLoading) {
+    return (
+      <Container component="main" maxWidth="xs">
+        <Box
+          sx={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <Paper elevation={3} sx={{ padding: 4, width: '100%', textAlign: 'center' }}>
+            <Typography component="h1" variant="h4" align="center" gutterBottom>
+              AI-HACCP
+            </Typography>
+            <Typography component="h2" variant="h6" align="center" color="textSecondary" gutterBottom>
+              Authenticating via SSO...
+            </Typography>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+                <Box sx={{ mt: 1 }}>
+                  <Button 
+                    size="small" 
+                    onClick={() => {
+                      setSsoLoading(false);
+                      setError('');
+                      window.history.replaceState({}, document.title, window.location.pathname);
+                    }}
+                  >
+                    Try Manual Login
+                  </Button>
+                </Box>
+              </Alert>
+            )}
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="body1">Please wait while we authenticate you...</Typography>
+              {!error && (
+                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                  If this takes too long, please try refreshing the page.
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container component="main" maxWidth="xs">
@@ -157,8 +216,8 @@ export default function Login() {
           </Typography>
           
           <Typography variant="caption" color="textSecondary" align="center" display="block" sx={{ mt: 1 }}>
-            Direct login: admin@ai-automorph.com / password<br/>
-            SSO: Use ai-swautomorph.com credentials
+            <strong>Direct login:</strong> admin@ai-automorph.com / password<br/>
+            <strong>SSO:</strong> Use swautomorph.com credentials
           </Typography>
         </Paper>
       </Box>

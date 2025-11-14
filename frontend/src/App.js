@@ -46,6 +46,7 @@ function App() {
           <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/sso/callback" element={<Login />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Layout>
@@ -109,6 +110,8 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
+            {/* Catch-all route for any other paths with SSO tokens */}
+            <Route path="*" element={<Login />} />
           </Routes>
           </Router>
         </AuthProvider>

@@ -59,6 +59,7 @@ export function AuthProvider({ children }) {
 
   const ssoLogin = async (ssoToken) => {
     try {
+      console.log('Sending SSO token to backend...');
       const response = await api.post('/auth/sso', { sso_token: ssoToken });
       const { access_token, user: userData } = response.data;
       
@@ -67,9 +68,12 @@ export function AuthProvider({ children }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser({ ...userData, token: access_token });
       
+      console.log('SSO login successful, user:', userData.email);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.detail || 'SSO login failed' };
+      console.error('SSO login error:', error.response?.data || error.message);
+      const errorMessage = error.response?.data?.detail || error.message || 'SSO login failed';
+      return { success: false, error: errorMessage };
     }
   };
 
