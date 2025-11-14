@@ -28,7 +28,9 @@ export default function Login() {
   const location = useLocation();
 
   useEffect(() => {
+    console.log('User state changed:', user);
     if (user) {
+      console.log('User is logged in, navigating to dashboard');
       navigate('/');
     }
   }, [user, navigate]);
@@ -49,12 +51,18 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
+    console.log('Form submitted with:', email, password);
 
     const result = await login(email, password);
     
+    console.log('Login result:', result);
+    
     if (result.success) {
+      console.log('Login successful, navigating to dashboard');
       navigate('/');
     } else {
+      console.error('Login failed:', result.error);
       setError(result.error);
     }
     
@@ -80,7 +88,8 @@ export default function Login() {
   };
 
   const redirectToSso = () => {
-    window.location.href = 'https://www.swautomorph.com/sso/auth';
+    const redirectUri = encodeURIComponent('https://ai-haccp.swautomorph.com:8102');
+    window.location.href = `https://www.swautomorph.com/sso/auth?redirect_uri=${redirectUri}`;
   };
 
   // Check for SSO token in URL - if present, show loading state
@@ -216,7 +225,7 @@ export default function Login() {
           </Typography>
           
           <Typography variant="caption" color="textSecondary" align="center" display="block" sx={{ mt: 1 }}>
-            <strong>Direct login:</strong> admin@ai-automorph.com / password<br/>
+            <strong>Direct login:</strong> Admin / password or admin@ai-automorph.com / password<br/>
             <strong>SSO:</strong> Use swautomorph.com credentials
           </Typography>
         </Paper>

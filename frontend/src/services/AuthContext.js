@@ -43,7 +43,9 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
+      console.log('Attempting login with:', email);
       const response = await api.post('/auth/login', { email, password });
+      console.log('Login response:', response.data);
       const { access_token, user: userData } = response.data;
       
       localStorage.setItem('token', access_token);
@@ -51,9 +53,11 @@ export function AuthProvider({ children }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser({ ...userData, token: access_token });
       
+      console.log('Login successful, user set:', userData);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.detail || 'Login failed' };
+      console.error('Login error:', error);
+      return { success: false, error: error.response?.data?.detail || error.message || 'Login failed' };
     }
   };
 

@@ -134,7 +134,11 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     # Ensure admin user exists
     ensure_admin_user(db)
     
-    user = db.query(User).filter(User.email == credentials.email).first()
+    # Handle both email and username login
+    user = db.query(User).filter(
+        (User.email == credentials.email) | 
+        (User.email == "admin@ai-automorph.com" and credentials.email.lower() == "admin")
+    ).first()
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
