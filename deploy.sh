@@ -317,29 +317,29 @@ case "${1:-help}" in
     "restart")
         restart_services
         ;;
-    "status")
+    "ps")
         check_status
         ;;
     "help")
-        echo "Usage: $0 [start|ssl|backup|verify|stop|restart|status|help]"
+        echo "Usage: $0 [start|ssl|backup|verify|stop|restart|ps|help]"
         echo "  start   - Full production deployment"
         echo "  ssl     - Setup SSL certificates only"
         echo "  backup  - Create database backup"
         echo "  verify  - Verify deployment status"
         echo "  stop    - Stop all services"
         echo "  restart - Restart all services"
-        echo "  status  - Check service status"
+        echo "  ps      - Check service status"
         echo "  help    - Show this help message (default)"
         ;;
     *)
-        echo "Usage: $0 [start|ssl|backup|verify|stop|restart|status|help]"
+        echo "Usage: $0 [start|ssl|backup|verify|stop|restart|ps|help]"
         echo "  start   - Full production deployment"
         echo "  ssl     - Setup SSL certificates only"
         echo "  backup  - Create database backup"
         echo "  verify  - Verify deployment status"
         echo "  stop    - Stop all services"
         echo "  restart - Restart all services"
-        echo "  status  - Check service status"
+        echo "  ps      - Check service status"
         echo "  help    - Show this help message (default)"
         exit 1
         ;;
