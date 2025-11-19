@@ -1,6 +1,17 @@
 #!/bin/bash
 # AI-HACCP Production Deployment Script
 
+# Handle command line arguments
+APPLICATION_IDENTITY_NUMBER=5
+COMMAND=${1:-help}
+USER_ID=${2:-1}
+USER_NAME=${3:-"User"}
+USER_EMAIL=${4:-"user@example.com"}
+DESCRIPTION=${5:-"Basic Information Display"}
+# Compute var RANGE_START = APPLICATION_IDENTITY_NUMBER * 100 + 6000
+RANGE_START=$((APPLICATION_IDENTITY_NUMBER * 100 + 6000))
+PORT_RANGE_BEGIN=${RANGE_START}
+
 set -e
 
 echo "🚀 AI-HACCP Production Deployment"
@@ -136,15 +147,15 @@ deploy_services() {
     log_info "Building and deploying services..."
     
     # Stop existing services
-    docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
+    PORT=$((PORT_RANGE_BEGIN + USER_ID)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID + 443)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
     
     # Build images
     log_info "Building Docker images..."
-    docker-compose -f docker-compose.prod.yml build --no-cache --build-arg PIP_UPGRADE=1
+    PORT=$((PORT_RANGE_BEGIN + USER_ID)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID + 443)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml build --no-cache --build-arg PIP_UPGRADE=1
     
     # Start services
     log_info "Starting production services..."
-    docker-compose -f docker-compose.prod.yml --env-file "$ENV_FILE" up -d
+    PORT=$((PORT_RANGE_BEGIN + USER_ID)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID + 443)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml --env-file "$ENV_FILE" up -d
     
     # Wait for services to be ready
     log_info "Waiting for services to start..."
@@ -216,7 +227,7 @@ BACKUP_FILE="$BACKUP_DIR/ai_haccp_backup_$DATE"
 mkdir -p "$BACKUP_DIR"
 
 echo "Creating backup: $BACKUP_FILE"
-docker-compose -f docker-compose.prod.yml exec -T api cp /app/data/ai_haccp.db /tmp/backup.db
+PORT=$((PORT_RANGE_BEGIN + USER_ID)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID + 443)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml exec -T api cp /app/data/ai_haccp.db /tmp/backup.db
 docker cp $(docker-compose -f docker-compose.prod.yml ps -q api):/tmp/backup.db "$BACKUP_FILE.db"
 
 if [[ $? -eq 0 ]]; then
@@ -271,14 +282,14 @@ main() {
 # Stop services
 stop_services() {
     log_info "Stopping AI-HACCP services..."
-    docker-compose -f docker-compose.prod.yml down
+    PORT=$((PORT_RANGE_BEGIN + USER_ID)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID + 443)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml down
     log_info "Services stopped successfully ✅"
 }
 
 # Restart services
 restart_services() {
     log_info "Restarting AI-HACCP services..."
-    docker-compose -f docker-compose.prod.yml restart
+    PORT=$((PORT_RANGE_BEGIN + USER_ID)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID + 443)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml restart
     log_info "Services restarted successfully ✅"
 }
 
@@ -286,7 +297,7 @@ restart_services() {
 check_status() {
     log_info "Checking AI-HACCP service status..."
     echo ""
-    docker-compose -f docker-compose.prod.yml ps
+    PORT=$((PORT_RANGE_BEGIN + USER_ID)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID + 443)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml ps
     echo ""
     
     if docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
