@@ -36,14 +36,30 @@ export default function Login() {
   }, [user, navigate]);
 
   useEffect(() => {
-    // Check for SSO token in URL (both sso_token and token parameters)
+    // Check for SSO parameters in URL
     const urlParams = new URLSearchParams(location.search);
-    const ssoToken = urlParams.get('sso_token') || urlParams.get('token');
+    const ssoToken = urlParams.get('sso_token') || urlParams.get('token') || urlParams.get('access_token') || urlParams.get('id_token');
     const userParam = urlParams.get('user');
+    const scope = urlParams.get('scope');
+    const state = urlParams.get('state');
+    const code = urlParams.get('code');
+    
+    console.log('SSO parameters found:', {
+      token: ssoToken ? ssoToken.substring(0, 20) + '...' : null,
+      user: userParam,
+      scope,
+      state,
+      code
+    });
     
     if (ssoToken) {
       setSsoLoading(true);
       handleSsoLogin(ssoToken);
+    } else if (code) {
+      // Handle OAuth authorization code flow
+      console.log('OAuth code flow detected, code:', code);
+      setSsoLoading(true);
+      handleSsoLogin(code);
     }
   }, [location]);
 
@@ -88,13 +104,13 @@ export default function Login() {
   };
 
   const redirectToSso = () => {
-    const redirectUri = encodeURIComponent('https://ai-haccp.swautomorph.com:8102');
+    const redirectUri = encodeURIComponent('https://ai-haccp.swautomorph.com:8102/');
     window.location.href = `https://www.swautomorph.com/sso/auth?redirect_uri=${redirectUri}`;
   };
 
   // Check for SSO token in URL - if present, show loading state
   const urlParams = new URLSearchParams(location.search);
-  const hasSsoToken = urlParams.get('sso_token') || urlParams.get('token');
+  const hasSsoToken = urlParams.get('sso_token') || urlParams.get('token') || urlParams.get('access_token') || urlParams.get('id_token') || urlParams.get('code');
 
   if (hasSsoToken && ssoLoading) {
     return (
