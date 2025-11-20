@@ -10,10 +10,12 @@ pip-delete-this-directory.txt
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod
 
 # Logs
 *.log
@@ -72,3 +74,25 @@ htmlcov/
 
 # Docker
 .dockerignore
+
+# Deployment and backups
+backups/
+backup.sh
+*.backup
+
+# Production secrets
+secrets/
+certs/
+private/
+
+# MCP server files
+mcp_server.log
+
+# AI and ML models
+models/
+*.pkl
+*.model
+
+# Temporary deployment files
+deploy.log
+install.log
