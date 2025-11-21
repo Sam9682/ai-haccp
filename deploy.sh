@@ -3,7 +3,7 @@
 
 # Handle command line arguments
 COMMAND=${1:-help}
-USER_ID=${2:-1}
+USER_ID=${2:-0}
 USER_NAME=${3:-"User"}
 USER_EMAIL=${4:-"user@example.com"}
 DESCRIPTION=${5:-"Basic Information Display"}
