@@ -1,21 +1,24 @@
 #!/bin/bash
-# AI-HACCP Production Deployment Script
+# ${NAME_OF_APPLICATION} Production Deployment Script
 
 set -e
 
 # Global Variables
+NAME_OF_APPLICATION="AI-HACCP"
+APPLICATION_IDENTITY_NUMBER=2
+RANGE_START=6000
+RANGE_RESERVED=10
+
+# Global Parameters
 COMMAND=${1:-help}
 USER_ID=${2:-0}
 USER_NAME=${3:-"user"}
 USER_EMAIL=${4:-"user@swautomorph.com"}
 DESCRIPTION=${5:-"Basic Information Display"}
-APPLICATION_IDENTITY_NUMBER=4
-RANGE_START=6000
-RANGE_RESERVED=10
-PORT_RANGE_BEGIN=$((APPLICATION_IDENTITY_NUMBER * 100 + RANGE_START))
 
 # Calculate ports (convert alphanumeric USER_ID to numeric for port calculation)
 calculate_ports() {
+    PORT_RANGE_BEGIN=$((APPLICATION_IDENTITY_NUMBER * 100 + RANGE_START))
     PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED))
     HTTPS_PORT=$((PORT + 1))
 }
@@ -33,7 +36,7 @@ show_environment() {
     echo ""
 }
 
-echo "🚀 AI-HACCP Production Deployment"
+echo "🚀 ${NAME_OF_APPLICATION} Production Deployment"
 echo "=================================="
 
 # Configuration
@@ -164,7 +167,7 @@ setup_ssl() {
 # Build and deploy
 deploy_services() {
     log_info "Building and deploying services..."
-    
+
     # Stop existing services
     PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED + 1)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
     
@@ -202,7 +205,7 @@ verify_deployment() {
     
     # Test API health endpoint
     sleep 10
-    if curl -f -s "http://ai-haccp.swautomorph.com:9001/health" > /dev/null; then
+    if curl -f -s "http://www.swautomorph.com:${PORT}/health" > /dev/null; then
         log_info "API health check passed ✅"
     else
         log_warn "API health check failed, but services are running"
@@ -221,8 +224,8 @@ setup_firewall() {
         sudo ufw default deny incoming
         sudo ufw default allow outgoing
         sudo ufw allow ssh
-        sudo ufw allow 8010/tcp
-        sudo ufw allow 44310/tcp
+        sudo ufw allow ${PORT}/tcp
+        sudo ufw allow ${HTTPS_PORT}/tcp
         sudo ufw --force enable
         
         log_info "Firewall configured ✅"
@@ -237,7 +240,7 @@ create_backup_script() {
     
     cat > backup.sh << 'EOF'
 #!/bin/bash
-# AI-HACCP Backup Script
+# ${NAME_OF_APPLICATION} Backup Script
 
 BACKUP_DIR="backups"
 DATE=$(date +%Y%m%d_%H%M%S)
@@ -267,7 +270,7 @@ EOF
 
 # Main deployment process
 start() {
-    log_info "Starting AI-HACCP production deployment..."
+    log_info "Starting ${NAME_OF_APPLICATION} production deployment..."
     
     check_prerequisites
     generate_secrets
@@ -300,36 +303,37 @@ start() {
 
 # Stop services
 stop_services() {
-    log_info "Stopping AI-HACCP services..."
+    log_info "Stopping ${NAME_OF_APPLICATION} services..."
     PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED + 1)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml down
     log_info "Services stopped successfully ✅"
 }
 
 # Restart services
 restart_services() {
-    log_info "Restarting AI-HACCP services..."
+    log_info "Restarting ${NAME_OF_APPLICATION} services..."
     PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED + 1)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml restart
     log_info "Services restarted successfully ✅"
 }
 
 # Check service status
 check_status() {
-    log_info "Checking AI-HACCP service status..."
+    log_info "Checking ${NAME_OF_APPLICATION} service status..."
     echo ""
     PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED)) HTTPS_PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED + 1)) USER_ID=$USER_ID docker-compose -f docker-compose.prod.yml ps
     echo ""
     
     if docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
-        log_info "AI-HACCP is running ✅"
+        log_info "${NAME_OF_APPLICATION} is running ✅"
     else
-        log_warn "AI-HACCP is not running ⚠️"
+        log_warn "${NAME_OF_APPLICATION} is not running ⚠️"
     fi
 }
 
 # Main function - orchestrates the deployment process
 main() {
     calculate_ports
-    
+    show_environment "${NAME_OF_APPLICATION}"
+
     case $COMMAND in
         "ps")
             check_status
