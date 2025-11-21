@@ -1,19 +1,37 @@
 #!/bin/bash
 # AI-HACCP Production Deployment Script
 
-# Handle command line arguments
+set -e
+
+# Global Variables
 COMMAND=${1:-help}
 USER_ID=${2:-0}
-USER_NAME=${3:-"User"}
-USER_EMAIL=${4:-"user@example.com"}
+USER_NAME=${3:-"user"}
+USER_EMAIL=${4:-"user@swautomorph.com"}
 DESCRIPTION=${5:-"Basic Information Display"}
-# Compute var RANGE_START = APPLICATION_IDENTITY_NUMBER * 100 + 6000
-APPLICATION_IDENTITY_NUMBER=2
+APPLICATION_IDENTITY_NUMBER=4
 RANGE_START=6000
 RANGE_RESERVED=10
 PORT_RANGE_BEGIN=$((APPLICATION_IDENTITY_NUMBER * 100 + RANGE_START))
 
-set -e
+# Calculate ports (convert alphanumeric USER_ID to numeric for port calculation)
+calculate_ports() {
+    PORT=$((PORT_RANGE_BEGIN + USER_ID * RANGE_RESERVED))
+    HTTPS_PORT=$((PORT + 1))
+}
+
+# Display environment variables for operations
+show_environment() {
+    local operation=$1
+    echo "🔍 Starting $operation operation..."
+    echo "Environment Variables:"
+    echo "  USER_ID=${USER_ID}"
+    echo "  USER_NAME=${USER_NAME}"
+    echo "  USER_EMAIL=${USER_EMAIL}"
+    echo "  PORT=${PORT}"
+    echo "  HTTPS_PORT=${HTTPS_PORT}"
+    echo ""
+}
 
 echo "🚀 AI-HACCP Production Deployment"
 echo "=================================="
@@ -248,7 +266,7 @@ EOF
 }
 
 # Main deployment process
-main() {
+start() {
     log_info "Starting AI-HACCP production deployment..."
     
     check_prerequisites
@@ -308,51 +326,37 @@ check_status() {
     fi
 }
 
-# Handle script arguments
-case "${1:-help}" in
-    "start")
-        main
-        ;;
-    "ssl")
-        setup_ssl
-        ;;
-    "backup")
-        create_backup_script
-        ./backup.sh
-        ;;
-    "verify")
-        verify_deployment
-        ;;
-    "stop")
-        stop_services
-        ;;
-    "restart")
-        restart_services
-        ;;
-    "ps")
-        check_status
-        ;;
-    "help")
-        echo "Usage: $0 [start|ssl|backup|verify|stop|restart|ps|help]"
-        echo "  start   - Full production deployment"
-        echo "  ssl     - Setup SSL certificates only"
-        echo "  backup  - Create database backup"
-        echo "  verify  - Verify deployment status"
-        echo "  stop    - Stop all services"
-        echo "  restart - Restart all services"
-        echo "  ps      - Check service status"
-        echo "  help    - Show this help message (default)"
-        ;;
-    *)
-        echo "Usage: $0 [start|ssl|backup|verify|stop|restart|ps|help]"
-        echo "  start   - Full production deployment"
-        echo "  ssl     - Setup SSL certificates only"
-        echo "  backup  - Create database backup"
-        echo "  verify  - Verify deployment status"
-        echo "  stop    - Stop all services"
-        echo "  restart - Restart all services"
-        echo "  ps      - Check service status"
-        echo "  help    - Show this help message (default)"
-        exit 1
-        ;;
-esac
+# Main function - orchestrates the deployment process
+main() {
+    calculate_ports
+    
+    case $COMMAND in
+        "ps")
+            check_status
+            exit 0
+            ;;
+        "stop")
+            stop_services
+            exit 0
+            ;;
+        "logs")
+            show_logs
+            exit 0
+            ;;
+        "restart")
+            restart_services
+            exit 0
+            ;;
+        "start")
+            start
+            exit 0
+            ;;
+        *)
+            show_usage
+            exit 1
+            ;;
+    esac
+}
+
+# Execute main function
+main "$@"
