@@ -23,6 +23,7 @@ services:
       - haccp-network
     ports:
       - "${PORT:-8100}:8100"
+    container_name: ai-haccp-api-${USER_ID:-1}
   frontend:
     build:
       context: ./frontend
@@ -34,6 +35,7 @@ services:
     restart: always
     networks:
       - haccp-network
+    container_name: ai-haccp-frontend-${USER_ID:-1}
 
   nginx:
     image: nginx:alpine
@@ -51,6 +53,7 @@ services:
     restart: always
     networks:
       - haccp-network
+    container_name: ai-haccp-nginx-${USER_ID:-1}
 
   mcp-server:
     build: ./backend
@@ -63,6 +66,7 @@ services:
     restart: always
     networks:
       - haccp-network
+    container_name: ai-haccp-mcp-${USER_ID:-1}
 
 volumes:
   uploads:
