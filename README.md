@@ -1,275 +1,203 @@
 # AI-HACCP Platform
 
-A comprehensive Food Safety Management Platform for restaurants, built with serverless architecture for cost optimization and scalability.
+## Objective
 
-## Features
+AI-HACCP is a serverless Food Safety Management Platform that automates HACCP compliance for restaurants. It provides temperature monitoring, product tracking, supplier management, and incident reporting through web interface, REST API, and AI integration via Model Context Protocol (MCP).
 
-### Core HACCP Functionality
-- **Temperature Monitoring**: Real-time temperature logging with alerts
-- **Product Management**: Complete product catalog with allergen tracking
-- **Supplier Management**: Supplier certification and risk assessment
-- **Batch Tracking**: Full traceability from supplier to customer
-- **Incident Management**: Food safety incident reporting and resolution
-- **Cleaning Records**: Sanitation tracking and verification
-- **Audit Management**: Compliance audits and documentation
+**Key Benefits:**
+- 85% cost reduction vs traditional hosting
+- Real-time compliance monitoring
+- AI-powered natural language interface
+- Multi-tenant architecture
+- Automated cost tracking and reporting
 
-### Cost Management
-- **Usage Tracking**: Detailed cost tracking per user and organization
-- **Shared Infrastructure**: Cost distribution among platform users
-- **Serverless Architecture**: Pay-per-use pricing model
-- **Real-time Reporting**: Transparent usage and cost reporting
+## Installation & Configuration
 
-### Technical Features
-- **Multi-tenant**: Support for multiple restaurants/organizations
-- **Mobile Responsive**: Works on smartphones and tablets
-- **API-First**: RESTful API for integrations
-- **Real-time Updates**: Live data synchronization
-- **Dual Authentication**: Direct login + SSO integration
-- **Secure Authentication**: JWT-based authentication
-
-## Architecture
-
-### Backend
-- **FastAPI**: High-performance Python web framework
-- **PostgreSQL**: Robust relational database
-- **SQLAlchemy**: ORM for database operations
-- **JWT Authentication**: Secure token-based auth
-- **Serverless Ready**: Compatible with AWS Lambda
-
-### Frontend
-- **React**: Modern web application framework
-- **Material-UI**: Professional UI components
-- **Responsive Design**: Mobile-first approach
-- **Real-time Charts**: Data visualization with Recharts
-
-### Infrastructure
-- **Docker**: Containerized deployment
-- **PostgreSQL**: Production-ready database
-- **Serverless Compatible**: AWS Lambda ready
-- **Cost Optimized**: Minimal resource usage
-
-## Quick Start
-
-### Prerequisites
-- Docker and Docker Compose
-- Node.js 18+ (for local development)
-- Python 3.11+ (for local development)
-
-### Development Setup
-
-1. **Clone and start the platform**:
+### Prerequisites Check
 ```bash
-git clone <repository>
+# Verify Docker installation
+docker --version
+docker-compose --version
+
+# If not installed, install Docker:
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+```
+
+### Automated Installation
+
+1. **Clone and Deploy**:
+```bash
+git clone https://github.com/your-org/ai-haccp.git
 cd ai-haccp
 docker-compose up -d
 ```
 
-### HTTPS Deployment
-
-The platform supports HTTPS with SSL certificates:
-
-1. **Deploy with HTTPS**:
+2. **Verify Installation**:
 ```bash
-./deploy-https.sh
+# Check all services are running
+docker-compose ps
+
+# Verify API is accessible
+curl -f http://localhost:8000/health || echo "API not ready, waiting..."
+
+# Wait for database initialization
+sleep 30
 ```
 
-2. **Manual HTTPS setup**:
+3. **Test Authentication**:
 ```bash
-# Ensure SSL certificates are in ./ssl/ directory
-# - ./ssl/fullchain.pem
-# - ./ssl/privkey.pem
-docker-compose up -d --build
+# Test login endpoint
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@ai-automorph.com","password":"password"}'
 ```
 
-2. **Access the application**:
-- Frontend: https://ai-haccp.swautomorph.com
-- Backend API: https://ai-haccp.swautomorph.com/api
-- API Documentation: https://ai-haccp.swautomorph.com/api/docs
+### Configuration
 
-3. **Authentication Options**:
-- **Direct Login**: admin@ai-automorph.com / password
-- **SSO Login**: Use ai-swautomorph.com credentials (click "Login with SSO")
-- See [AUTHENTICATION.md](AUTHENTICATION.md) for detailed setup
-
-### Database Setup
-
-The database is automatically initialized with the schema when you start the containers. The init.sql file contains:
-- Complete HACCP data model
-- Cost tracking tables
-- Sample data and indexes
-
-### API Endpoints
-
-#### Authentication
-- `POST /auth/login` - User login
-- `POST /users` - Create user
-- `POST /organizations` - Create organization
-
-#### HACCP Operations
-- `GET/POST /temperature-logs` - Temperature monitoring
-- `GET/POST /products` - Product management
-- `GET/POST /suppliers` - Supplier management
-- `GET/POST /incidents` - Incident reporting
-
-#### Cost Management
-- `GET /usage-report` - Usage and cost analytics
-
-## Deployment
-
-### Serverless Deployment (AWS)
-
-1. **Install serverless dependencies**:
+**Environment Variables** (optional):
 ```bash
-pip install mangum
+# Create .env file for custom configuration
+cat > .env << EOF
+DATABASE_URL=postgresql://haccp_user:haccp_password@db:5432/haccp_db
+JWT_SECRET_KEY=your-secret-key-here
+CORS_ORIGINS=http://localhost:3000,https://your-domain.com
+EOF
 ```
 
-2. **Deploy with AWS Lambda**:
-The application is ready for serverless deployment using Mangum adapter.
-
-3. **Database**: Use AWS RDS PostgreSQL for production
-
-### Traditional Deployment
-
-1. **Build containers**:
+**SSL/HTTPS Setup** (production):
 ```bash
-docker-compose build
+# Place SSL certificates in ssl/ directory
+mkdir -p ssl
+# Copy your certificates:
+# ssl/fullchain.pem
+# ssl/privkey.pem
+
+# Deploy with HTTPS
+docker-compose -f docker-compose.yml -f docker-compose.https.yml up -d
 ```
 
-2. **Deploy to production**:
+### Access Points
+
+- **Web Interface**: http://localhost:3000
+- **API Documentation**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
+- **Default Login**: admin@ai-automorph.com / password
+
+### API Usage
+
+**Authentication**:
 ```bash
+# Get JWT token
+TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@ai-automorph.com","password":"password"}' \
+  | jq -r '.access_token')
+```
+
+**Core Operations**:
+```bash
+# Log temperature
+curl -X POST http://localhost:8000/temperature-logs \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"location":"Freezer","temperature":-18.5,"equipment_id":"FREEZER_01"}'
+
+# Create product
+curl -X POST http://localhost:8000/products \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Chicken Breast","category":"Meat","allergens":["None"]}'
+
+# Report incident
+curl -X POST http://localhost:8000/incidents \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Temperature Deviation","description":"Freezer temperature above -15°C","severity":"High"}'
+```
+
+### MCP Integration (AI Interface)
+
+**Setup MCP Server**:
+```bash
+# Install MCP dependencies
+pip install mcp
+
+# Configure MCP server
+cat > mcp-config.json << EOF
+{
+  "server": {
+    "command": "python",
+    "args": ["-m", "ai_haccp.mcp_server"],
+    "env": {
+      "API_BASE_URL": "http://localhost:8000",
+      "API_TOKEN": "$TOKEN"
+    }
+  }
+}
+EOF
+```
+
+**AI Commands** (via MCP):
+- "Log temperature of -18°C in walk-in freezer"
+- "Create new supplier for organic vegetables"
+- "Report incident about contaminated batch"
+- "Show today's temperature logs"
+- "Generate compliance report for last week"
+
+### Troubleshooting
+
+**Common Issues**:
+```bash
+# Database connection issues
+docker-compose logs db
+
+# API not responding
+docker-compose logs api
+
+# Reset everything
+docker-compose down -v
+docker-compose up -d
+
+# Check disk space
+df -h
+
+# Check memory usage
+free -h
+```
+
+**Health Checks**:
+```bash
+# Verify all services
+curl http://localhost:8000/health
+curl http://localhost:3000
+
+# Database connectivity
+docker-compose exec db psql -U haccp_user -d haccp_db -c "SELECT 1;"
+```
+
+### Production Deployment
+
+**AWS Lambda** (Serverless):
+```bash
+# Install serverless dependencies
+pip install mangum boto3
+
+# Deploy to AWS
+aws lambda create-function --function-name ai-haccp \
+  --runtime python3.11 \
+  --handler app.handler \
+  --zip-file fileb://deployment.zip
+```
+
+**Traditional Server**:
+```bash
+# Production compose file
 docker-compose -f docker-compose.prod.yml up -d
+
+# With monitoring
+docker-compose -f docker-compose.prod.yml -f docker-compose.monitoring.yml up -d
 ```
 
-## Cost Model
-
-### Serverless Benefits
-- **85% cost reduction** vs traditional hosting
-- **Pay-per-use**: Only pay for actual API calls
-- **Auto-scaling**: Handles traffic spikes automatically
-- **Zero maintenance**: No server management required
-
-### Usage Tracking
-- Every API call is logged with cost
-- Real-time usage reporting
-- Cost sharing among users
-- Transparent billing
-
-### Typical Costs (AWS Lambda)
-- API Call: $0.001 - $0.005
-- Database Query: $0.001 - $0.002
-- File Storage: $0.0001 per MB
-- Temperature Log: $0.002
-
-## Mobile Compatibility
-
-The platform is fully responsive and works on:
-- iOS Safari
-- Android Chrome
-- Progressive Web App (PWA) ready
-- Offline capability (planned)
-
-## API Integration
-
-### REST API
-```javascript
-// Example API usage
-const response = await fetch('https://ai-haccp.swautomorph.com/api/temperature-logs', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer <token>',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    location: 'Walk-in Freezer',
-    temperature: -18.5,
-    equipment_id: 'FREEZER_01'
-  })
-});
-```
-
-### Webhook Support (Planned)
-- Real-time notifications
-- Third-party integrations
-- Alert systems
-
-## Security
-
-- JWT token authentication
-- Password hashing with bcrypt
-- SQL injection prevention
-- CORS protection
-- Input validation
-- Audit logging
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Documentation & Support
-
-### 📚 User Guides
-- **[Quick Start Guide](QUICK_START.md)** - Get started in 5 minutes
-- **[Complete User Guide](USER_GUIDE.md)** - Comprehensive documentation
-- **[Interface Guide](README_INTERFACES.md)** - All access methods (Web, CLI, API, MCP)
-- **[MCP Integration](README_MCP.md)** - AI assistant setup
-- **[Troubleshooting Guide](TROUBLESHOOTING.md)** - Common issues and solutions
-
-### 🌐 Web Help
-- **Built-in Help**: Navigate to "Help & Guide" in the web interface
-- **API Documentation**: https://ai-haccp.swautomorph.com/api/docs
-- **Interactive Help**: https://ai-haccp.swautomorph.com/help
-
-### 📞 Support
-- **Email**: support@ai-haccp.com
-- **Emergency Food Safety**: 0033619899050
-- **Platform Status**: status.ai-haccp.com
-- **GitHub Issues**: Create an issue for bugs or feature requests
-
-## MCP Integration
-
-The platform now supports **Model Context Protocol (MCP)**, allowing generative AI to directly interact with HACCP functions:
-
-- **Natural Language Interface**: Talk to the system in plain English
-- **Voice Control**: Hands-free operation for busy kitchens
-- **AI-Powered Assistance**: Intelligent compliance guidance
-- **Automated Reporting**: AI generates compliance reports
-
-### Available AI Tools
-- Temperature logging and monitoring
-- Product and supplier management
-- Incident reporting and tracking
-- Compliance status checking
-- Usage and cost analytics
-
-See [README_MCP.md](README_MCP.md) for detailed MCP setup instructions.
-
-## Roadmap
-
-### Phase 1 (Current)
-- ✅ Core HACCP functionality
-- ✅ Cost tracking
-- ✅ Web interface
-- ✅ Mobile responsive
-- ✅ MCP integration for AI
-
-### Phase 2 (Planned)
-- [ ] Mobile app (React Native)
-- [ ] Advanced analytics
-- [ ] IoT sensor integration
-- [ ] Automated alerts
-- [ ] Multi-language support
-
-### Phase 3 (Future)
-- [ ] AI-powered insights
-- [ ] Predictive analytics
-- [ ] Blockchain traceability
-- [ ] Voice commands
-- [ ] Augmented reality features
+The platform is now ready for use. All HACCP operations are accessible via web interface, REST API, and AI natural language commands through MCP integration.
