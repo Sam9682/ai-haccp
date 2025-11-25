@@ -128,7 +128,7 @@ services:
 
   api:
     build: 
-      context: ./backend
+      context: ./src/backend
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}
@@ -147,7 +147,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./src/frontend
       dockerfile: Dockerfile
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_PORT}
@@ -159,7 +159,7 @@ services:
 
   mcp-server:
     build:
-      context: ./mcp
+      context: ./src/backend
       dockerfile: Dockerfile
     environment:
       API_BASE_URL: http://api:8000
