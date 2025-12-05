@@ -55,18 +55,18 @@ services:
       - haccp-network
     container_name: ai-haccp-nginx-${USER_ID:-0}-${HTTPS_PORT:-6000}
 
-  mcp-server:
-    build: ./src/backend
-    command: python mcp_server.py
-    environment:
-      DATABASE_URL: sqlite:///./data/ai_haccp.db
-      PYTHONPATH: /app
-    volumes:
-      - data:/app/data
-    restart: always
-    networks:
-      - haccp-network
-    container_name: ai-haccp-mcp-${USER_ID:-0}-${HTTPS_PORT:-6000}
+  # mcp-server:
+  #   build: ./src/backend
+  #   command: python mcp_server.py
+  #   environment:
+  #     DATABASE_URL: sqlite:///./data/ai_haccp.db
+  #     PYTHONPATH: /app
+  #   volumes:
+  #     - data:/app/data
+  #   restart: always
+  #   networks:
+  #     - haccp-network
+  #   container_name: ai-haccp-mcp-${USER_ID:-0}-${HTTPS_PORT:-6000}
 
 volumes:
   uploads:
