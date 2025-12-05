@@ -35,7 +35,7 @@ services:
     restart: always
     networks:
       - haccp-network
-    container_name: ai-haccp-frontend-${USER_ID:-0}-${HTTPS_PORT:-6000}
+    container_name: ai-haccp-frontend-${USER_ID:-0}-${HTTPS_PORT2:-6000}
 
   nginx:
     image: nginx:alpine
