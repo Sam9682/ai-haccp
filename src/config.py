@@ -1,2 +1,2 @@
 # Global configuration for AI-HACCP Platform
-g_WebSiteAddr = "ai-haccp.swautomorph.com"
+g_WebSiteAddr = "www.swautomorph.com"

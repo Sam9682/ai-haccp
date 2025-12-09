@@ -9,9 +9,9 @@ help: ## Show this help message
 dev: ## Start development environment
 	docker-compose up -d
 	@echo "🚀 Development environment started!"
-	@echo "Frontend: http://ai-haccp.swautomorph.com:3000"
-	@echo "Backend API: http://ai-haccp.swautomorph.com:8000"
-	@echo "API Docs: http://ai-haccp.swautomorph.com:8000/docs"
+	@echo "Frontend: http://www.swautomorph.com:3000"
+	@echo "Backend API: http://www.swautomorph.com:8000"
+	@echo "API Docs: http://www.swautomorph.com:8000/docs"
 
 prod: ## Start production environment
 	docker-compose -f docker-compose.prod.yml up -d

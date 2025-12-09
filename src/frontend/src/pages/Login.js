@@ -104,7 +104,7 @@ export default function Login() {
   };
 
   const redirectToSso = () => {
-    const redirectUri = encodeURIComponent('https://ai-haccp.swautomorph.com:8102/');
+    const redirectUri = encodeURIComponent('https://www.swautomorph.com:8102/');
     window.location.href = `https://www.swautomorph.com/sso/auth?redirect_uri=${redirectUri}`;
   };
 

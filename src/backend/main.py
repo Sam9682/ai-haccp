@@ -39,25 +39,10 @@ async def startup_event():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "*",
-        "https://ai-haccp.swautomorph.com",
-        "http://ai-haccp.swautomorph.com",
-        "https://ai-swautomorph.swautomorph.com",
-        "http://ai-swautomorph.swautomorph.com:5002",
-        "http://localhost:3000",
-        "http://localhost:8101"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=[
-        "*",
-        "Authorization",
-        "Content-Type",
-        "Accept",
-        "Origin",
-        "X-Requested-With"
-    ],
+    allow_headers=["*"],
 )
 
 security = HTTPBearer()

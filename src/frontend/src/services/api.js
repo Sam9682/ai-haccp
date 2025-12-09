@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const g_WebSiteAddr = 'ai-haccp.swautomorph.com';
+const g_WebSiteAddr = 'www.swautomorph.com';
 const API_URL = process.env.REACT_APP_API_URL || `https://${g_WebSiteAddr}:8102/api`;
 
 const api = axios.create({
