@@ -22,9 +22,9 @@ nano .env.prod
 ```bash
 POSTGRES_PASSWORD=your-secure-password-here
 JWT_SECRET=your-32-character-secret-key
-DOMAIN=ai-haccp.swautomorph.com
-API_URL=https://ai-haccp.swautomorph.com
-REACT_APP_API_URL=https://ai-haccp.swautomorph.com
+DOMAIN=www.swautomorph.com
+API_URL=https://www.swautomorph.com
+REACT_APP_API_URL=http://www.swautomorph.com
 SSL_EMAIL=admin@swautomorph.com
 ```
 

@@ -19,6 +19,6 @@ COPY . .
 # Create uploads and data directories
 RUN mkdir -p uploads/reception_images data
 
-EXPOSE 9001
+EXPOSE 9002
 
-CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:9001"]
+CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:9002"]

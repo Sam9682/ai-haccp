@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const g_WebSiteAddr = 'www.swautomorph.com';
-const API_URL = process.env.REACT_APP_API_URL || `https://${g_WebSiteAddr}:${process.env.REACT_APP_HTTPS_PORT2 || '6002'}/api`;
+const API_URL = process.env.REACT_APP_API_URL || `http://${g_WebSiteAddr}:${process.env.REACT_APP_HTTP_PORT2 || '6002'}/api`;
 
 const api = axios.create({
   baseURL: API_URL,

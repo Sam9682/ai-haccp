@@ -8,7 +8,7 @@ http {
     }
 
     upstream frontend {
-        server frontend:8011;
+        server frontend:9002;
     }
 
     # Rate limiting - disabled for open access
