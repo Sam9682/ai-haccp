@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  api:
+  backend:
     build: 
       context: ./src/backend
       dockerfile: Dockerfile.prod
@@ -22,8 +22,8 @@ services:
     networks:
       - haccp-network
     ports:
-      - "${HTTP_PORT2:-9002}:9002"
-    container_name: ai-haccp-api-${USER_ID:-1}-${HTTP_PORT2:-9002}
+      - "${HTTP_PORT2:-9001}:9001"
+    container_name: ai-haccp-backend-${USER_ID:-1}-${HTTP_PORT2:-9001}
   frontend:
     build:
       context: ./src/frontend
@@ -32,7 +32,7 @@ services:
       REACT_APP_API_URL: ${API_URL:-https://www.swautomorph.com:${HTTP_PORT2:-9002}/api}
       REACT_APP_HTTPS_PORT2: ${HTTPS_PORT2:-9002}
     depends_on:
-      - api
+      - backend
     restart: always
     networks:
       - haccp-network
@@ -47,7 +47,7 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
       - uploads:/var/www/uploads:ro
     depends_on:
-      - api
+      - backend
       - frontend
     restart: always
     networks:
