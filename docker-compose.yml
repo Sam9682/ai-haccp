@@ -28,6 +28,9 @@ services:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile.prod
+      args:
+        REACT_APP_HTTP_PORT2: ${HTTP_PORT2:-9002}
+        REACT_APP_API_URL: ${API_URL:-https://www.swautomorph.com:${HTTP_PORT2:-9002}/api}
     environment:
       REACT_APP_API_URL: ${API_URL:-https://www.swautomorph.com:${HTTP_PORT2:-9002}/api}
       REACT_APP_HTTPS_PORT2: ${HTTPS_PORT2:-9002}
