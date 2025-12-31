@@ -39,6 +39,8 @@ services:
     restart: always
     networks:
       - haccp-network
+    ports:
+      - "${HTTP_PORT2:-9002}:9002"
     container_name: ai-haccp-frontend-${USER_ID:-1}-${HTTP_PORT2:-9002}
 
   nginx:
