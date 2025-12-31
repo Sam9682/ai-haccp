@@ -17,7 +17,7 @@ def test_login():
     }
     
     # API endpoint (using local port)
-    api_url = "https://localhost:8102/api/auth/login"
+    api_url = "http://localhost:6210/api/auth/login"
     
     try:
         print("Testing AI-HACCP login...")
@@ -58,7 +58,7 @@ def test_login():
 def test_frontend():
     """Test if frontend is accessible"""
     
-    frontend_url = "https://localhost:8102/"
+    frontend_url = "http://localhost:6210/"
     
     try:
         print("\nTesting frontend accessibility...")
