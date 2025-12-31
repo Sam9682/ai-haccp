@@ -22,8 +22,8 @@ services:
     networks:
       - haccp-network
     ports:
-      - "${HTTP_PORT2:-9001}:9001"
-    container_name: ai-haccp-backend-${USER_ID:-1}-${HTTP_PORT2:-9001}
+      - "${HTTP_PORT:-9001}:9001"
+    container_name: ai-haccp-backend-${USER_ID:-1}-${HTTP_PORT:-9001}
   frontend:
     build:
       context: ./src/frontend
