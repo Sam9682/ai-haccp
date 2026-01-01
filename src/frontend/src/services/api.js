@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const g_WebSiteAddr = 'localhost';
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:9001';
+const g_WebSiteAddr = 'www.swautomorph.com';
+const API_URL = process.env.REACT_APP_API_URL || 'https://www.swautomorph.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
