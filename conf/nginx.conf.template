@@ -34,6 +34,9 @@ http {
         add_header X-Frame-Options "ALLOWALL" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-XSS-Protection "0" always;
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS, PATCH' always;
+        add_header 'Access-Control-Allow-Headers' '*' always;
         # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
         # API routes - strip /api prefix
@@ -105,6 +108,9 @@ http {
 
         # Frontend routes
         location / {
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS, PATCH' always;
+            add_header 'Access-Control-Allow-Headers' '*' always;
             proxy_pass http://frontend/;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
