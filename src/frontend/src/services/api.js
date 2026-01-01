@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const g_WebSiteAddr = 'www.swautomorph.com';
+const g_WebSiteAddr = 'localhost';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:9001';
 
 const api = axios.create({

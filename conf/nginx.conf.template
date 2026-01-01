@@ -31,34 +31,22 @@ http {
         ssl_session_timeout 10m;
 
         # Security headers - relaxed for open access
-        add_header X-Frame-Options "ALLOWALL" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header X-XSS-Protection "0" always;
         add_header 'Access-Control-Allow-Origin' '*' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS, PATCH' always;
-        add_header 'Access-Control-Allow-Headers' '*' always;
-        # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
 
         # API routes - strip /api prefix
         location /api/ {
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
+            add_header 'Access-Control-Allow-Credentials' 'true' always;
             # Handle preflight OPTIONS requests
             if ($request_method = 'OPTIONS') {
-                add_header 'Access-Control-Allow-Origin' '*' always;
-                add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS, PATCH' always;
-                add_header 'Access-Control-Allow-Headers' '*' always;
-                add_header 'Access-Control-Allow-Credentials' 'true' always;
-                add_header 'Access-Control-Max-Age' 1728000;
-                add_header 'Content-Type' 'text/plain; charset=utf-8';
-                add_header 'Content-Length' 0;
                 return 204;
             }
 
-            # CORS headers for all responses
-            add_header 'Access-Control-Allow-Origin' '*' always;
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS, PATCH' always;
-            add_header 'Access-Control-Allow-Headers' '*' always;
-            add_header 'Access-Control-Allow-Credentials' 'true' always;
-            
             proxy_pass http://backend/;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -68,13 +56,16 @@ http {
 
         # Image upload routes (higher limits)
         location /api/material-reception {
-            # CORS headers
             add_header 'Access-Control-Allow-Origin' '*' always;
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS, PATCH' always;
-            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
             add_header 'Access-Control-Allow-Credentials' 'true' always;
-            
-            # limit_req zone=upload burst=5 nodelay;
+            # Handle preflight OPTIONS requests
+            if ($request_method = 'OPTIONS') {
+                return 204;
+            }
+
+            upload burst=5 nodelay;
             client_max_body_size 10M;
             proxy_pass http://backend/material-reception;
             proxy_set_header Host $host;
@@ -84,11 +75,14 @@ http {
         }
 
         location /api/analyze-reception-image {
-            # CORS headers
             add_header 'Access-Control-Allow-Origin' '*' always;
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS, PATCH' always;
-            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
             add_header 'Access-Control-Allow-Credentials' 'true' always;
+            # Handle preflight OPTIONS requests
+            if ($request_method = 'OPTIONS') {
+                return 204;
+            }
             
             # limit_req zone=upload burst=5 nodelay;
             client_max_body_size 10M;
@@ -109,8 +103,14 @@ http {
         # Frontend routes
         location / {
             add_header 'Access-Control-Allow-Origin' '*' always;
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS, PATCH' always;
-            add_header 'Access-Control-Allow-Headers' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
+            add_header 'Access-Control-Allow-Credentials' 'true' always;
+            # Handle preflight OPTIONS requests
+            if ($request_method = 'OPTIONS') {
+                return 204;
+            }
+
             proxy_pass http://frontend/;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
