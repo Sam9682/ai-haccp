@@ -24,7 +24,7 @@ POSTGRES_PASSWORD=your-secure-password-here
 JWT_SECRET=your-32-character-secret-key
 DOMAIN=www.swautomorph.com
 API_URL=https://www.swautomorph.com
-REACT_APP_API_URL=http://www.swautomorph.com
+REACT_APP_API_URL=https://www.swautomorph.com:${HTTPS_PORT}
 SSL_EMAIL=admin@swautomorph.com
 ```
 

@@ -39,7 +39,7 @@ API_URL=https://ai-haccp.swautomorph.com
 SSL_EMAIL=admin@swautomorph.com
 
 # Frontend
-REACT_APP_API_URL=https://www.swautomorph.com
+REACT_APP_API_URL=https://www.swautomorph.com:${HTTPS_PORT}
 ```
 
 ### 3. Start Production Environment
@@ -98,7 +98,7 @@ POSTGRES_DB=ai_haccp
 JWT_SECRET=$(openssl rand -base64 32)
 DOMAIN=www.swautomorph.com
 API_URL=https://www.swautomorph.com
-REACT_APP_API_URL=https://www.swautomorph.com
+REACT_APP_API_URL=https://${DOMAIN}:${HTTPS_PORT}
 SSL_EMAIL=admin@swautomorph.com
 EOF
 
