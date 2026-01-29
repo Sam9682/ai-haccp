@@ -104,8 +104,8 @@ export default function Login() {
   };
 
   const redirectToSso = () => {
-    const redirectUri = encodeURIComponent('https://www.swautomorph.com/');
-    window.location.href = `https://www.swautomorph.com/sso/auth?redirect_uri=${redirectUri}`;
+    const redirectUri = encodeURIComponent('https://www.softfluid.fr/');
+    window.location.href = `https://www.softfluid.fr/sso/auth?redirect_uri=${redirectUri}`;
   };
 
   // Check for SSO token in URL - if present, show loading state

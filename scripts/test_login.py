@@ -98,7 +98,7 @@ if __name__ == "__main__":
     if login_success and frontend_success:
         print("\n🎉 All tests passed! The platform is working correctly.")
         print("\nYou can now access the platform at:")
-        print("https://ai-haccp.swautomorph.com")
+        print("https://www.softfluid.fr")
         print("\nLogin credentials:")
         print("Email: admin@ai-automorph.com")
         print("Password: password")
